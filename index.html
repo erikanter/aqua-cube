@@ -52,6 +52,68 @@
 
 
 
+
+/* Aqua Cube — approved glass/ice icon sprite v1.1 */
+.icon-art{
+  display:block;
+  flex:0 0 auto;
+  width:var(--icon-size);
+  height:var(--icon-size);
+  background-image:url("aqua-cube-icons.png");
+  background-repeat:no-repeat;
+  background-position-y:0;
+  background-size:calc(17 * var(--icon-size)) var(--icon-size);
+}
+.tool-icon{
+  --icon-size:42px;
+  width:42px;height:42px;border-radius:14px;
+  display:grid;place-items:center;
+  background:transparent;
+  margin-bottom:14px;
+  font-size:0;
+}
+.tool-icon .icon-art{--icon-size:42px}
+.nav-icon{
+  --icon-size:32px;
+  width:32px;height:32px;
+  display:block;
+  margin:0 auto 1px;
+}
+.nav-icon .icon-art{--icon-size:32px}
+.gear-button{
+  width:56px;height:56px;border:0;border-radius:50%;
+  display:grid;place-items:center;
+  background:var(--surface);
+  box-shadow:0 10px 28px rgba(18,48,68,.08);
+  border:1px solid rgba(221,229,234,.72);
+  -webkit-tap-highlight-color:transparent;
+  padding:0;
+}
+.gear-button .icon-art{--icon-size:46px}
+.gear-button:active{transform:scale(.94)}
+.nav button{
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  gap:1px;line-height:1.05;
+}
+.nav button.active .nav-icon{filter:saturate(1.12) brightness(1.04)}
+.icon-today{background-position-x:0}
+.icon-history{background-position-x:calc(-1 * var(--icon-size))}
+.icon-tools{background-position-x:calc(-2 * var(--icon-size))}
+.icon-drop{background-position-x:calc(-3 * var(--icon-size))}
+.icon-convert{background-position-x:calc(-4 * var(--icon-size))}
+.icon-clock{background-position-x:calc(-5 * var(--icon-size))}
+.icon-book{background-position-x:calc(-6 * var(--icon-size))}
+.icon-bottle{background-position-x:calc(-7 * var(--icon-size))}
+.icon-gear{background-position-x:calc(-8 * var(--icon-size))}
+.icon-bell{background-position-x:calc(-9 * var(--icon-size))}
+.icon-dropplus{background-position-x:calc(-10 * var(--icon-size))}
+.icon-edit{background-position-x:calc(-11 * var(--icon-size))}
+.icon-delete{background-position-x:calc(-12 * var(--icon-size))}
+.icon-next{background-position-x:calc(-13 * var(--icon-size))}
+.icon-back{background-position-x:calc(-14 * var(--icon-size))}
+.icon-close{background-position-x:calc(-15 * var(--icon-size))}
+.icon-check{background-position-x:calc(-16 * var(--icon-size))}
+
 </style>
 </head>
 <body><div id="app"></div>
