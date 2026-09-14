@@ -1,5 +1,5 @@
-const VERSION="aqua-cube-v9";
-const STATIC=["./","./index.html","./manifest.webmanifest","./icon-192.png","./icon-512.png","./apple-touch-icon.png","./apple-touch-icon-v2.png"];
+const VERSION="aqua-cube-v9-2";
+const STATIC=["./","./index.html","./manifest.webmanifest","./icon-192.png","./icon-512.png","./apple-touch-icon.png","./apple-touch-icon-v2.png","./cube-shell.png"];
 self.addEventListener("install",e=>e.waitUntil(caches.open(VERSION).then(c=>c.addAll(STATIC)).then(()=>self.skipWaiting())));
 self.addEventListener("activate",e=>e.waitUntil((async()=>{const keys=await caches.keys();await Promise.all(keys.filter(k=>k!==VERSION).map(k=>caches.delete(k)));await self.clients.claim()})()));
 self.addEventListener("fetch",e=>{const r=e.request,u=new URL(r.url);if(r.method!=="GET"||u.origin!==self.location.origin)return;if(r.mode==="navigate"||u.pathname.endsWith("/index.html")||u.pathname.endsWith("/")){e.respondWith(fetch(r,{cache:"no-store"}).then(res=>{const c=res.clone();caches.open(VERSION).then(x=>x.put(r,c));return res}).catch(()=>caches.match(r).then(x=>x||caches.match("./index.html"))))}else{e.respondWith(caches.match(r).then(x=>x||fetch(r).then(res=>{const c=res.clone();caches.open(VERSION).then(y=>y.put(r,c));return res})))}});
