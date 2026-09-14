@@ -10,7 +10,7 @@
 <meta name="apple-mobile-web-app-title" content="Aqua Cube">
 <link rel="manifest" href="./manifest.webmanifest">
 <title>Aqua Cube</title>
-<!-- Aqua Cube build 0.11: dynamic photorealistic water -->
+<!-- Aqua Cube build 0.12: five visual water levels with smooth transitions -->
 <style>
 :root{--bg:#F7FAFC;--surface:rgba(255,255,255,.76);--text:#172027;--secondary:#73808A;--divider:#DDE5EA;--primary:#72C9F4;--primaryDark:#123044;--shadow:0 18px 40px rgba(18,48,68,.09)}
 :root[data-theme=dark]{--bg:#0E1418;--surface:rgba(25,34,40,.82);--text:#F3F8FA;--secondary:#9BAAB3;--divider:#2B3941;--primaryDark:#EAF8FF;--shadow:0 18px 40px rgba(0,0,0,.3)}
@@ -208,14 +208,21 @@ body{background:
 
 .data-tools{gap:12px}.data-actions{display:flex;gap:10px;margin-top:4px}.secondary{flex:1;border:1px solid var(--line);background:rgba(255,255,255,.58);color:var(--text);border-radius:14px;padding:12px 14px;font:600 15px system-ui}.theme-dark .secondary{background:rgba(255,255,255,.06)}
 
-/* v0.11 — photorealistic dynamic water using the approved cube as the source texture */
-.cube-shell-clear{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;z-index:2;display:block;pointer-events:none;filter:drop-shadow(0 27px 25px rgba(48,120,158,.20)) drop-shadow(0 9px 13px rgba(48,120,158,.10));}
-.cube-water-texture{position:absolute;left:5.72%;bottom:12.14%;width:87.14%;height:auto;z-index:3;display:block;transform-origin:50% 100%;transform:scaleY(var(--water-scale));transition:transform .72s cubic-bezier(.22,.8,.24,1),opacity .25s ease;pointer-events:none;filter:saturate(1.04) contrast(1.015);}
-.cube-water-texture[style*="--water-scale:0"]{opacity:0;}
-.cube-front-light{position:absolute;left:8.5%;top:28%;width:58%;height:55%;z-index:4;pointer-events:none;border-radius:22% 18% 13% 12%;background:linear-gradient(145deg,rgba(255,255,255,.12),transparent 26%,rgba(255,255,255,.025) 55%,rgba(114,201,244,.035));box-shadow:inset 0 0 28px rgba(255,255,255,.10),inset -10px -12px 22px rgba(82,177,218,.045);mix-blend-mode:screen;}
-.cube-glass{z-index:5;background:linear-gradient(145deg,rgba(255,255,255,.14),transparent 25%,rgba(255,255,255,.025) 52%,rgba(114,201,244,.035) 100%);box-shadow:inset 0 0 38px rgba(255,255,255,.15),inset 0 -18px 25px rgba(89,189,231,.055);}
-.cube-reflection-art{display:none!important}
-.dynamic-water-svg,.cube-depth,.cube-art{display:none!important}
+/* v0.13 — five animated WebP water levels */
+.cube-stage{isolation:isolate;width:min(86vw,360px);height:min(86vw,360px);margin:18px auto 0;display:grid;place-items:center;position:relative;}
+.cube-stage::before{content:"";position:absolute;left:2%;right:2%;bottom:8%;height:25%;border-radius:50%;background:radial-gradient(ellipse,rgba(91,196,236,.28),rgba(145,222,245,.13) 45%,transparent 75%);filter:blur(18px);z-index:0;}
+.cube-stage::after{content:"";position:absolute;left:7%;right:7%;bottom:4%;height:12%;border-radius:50%;background:rgba(255,255,255,.26);filter:blur(10px);z-index:0;}
+.cube{position:relative;width:100%;height:100%;overflow:visible;background:transparent;border:0;box-shadow:none;border-radius:0;display:grid;place-items:center;z-index:1;}
+.cube-level{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;display:block;opacity:0;transform:scale(.985);transition:opacity .55s ease,transform .55s cubic-bezier(.22,.8,.24,1);filter:drop-shadow(0 24px 22px rgba(50,120,158,.18)) drop-shadow(0 7px 11px rgba(50,120,158,.08));pointer-events:none;}
+.cube[data-level="0"] .level-0,.cube[data-level="1"] .level-25,.cube[data-level="2"] .level-50,.cube[data-level="3"] .level-75,.cube[data-level="4"] .level-100{opacity:1;transform:scale(1);}
+.water-shimmer{display:none;}
+.water-shimmer::before{content:"";position:absolute;inset:-30% -45%;background:linear-gradient(105deg,transparent 35%,rgba(255,255,255,.52) 48%,rgba(255,255,255,.08) 54%,transparent 68%);animation:shimmer 3.8s ease-in-out infinite;}
+.water-shimmer::after{content:"";position:absolute;left:8%;right:4%;top:16%;height:12%;border-radius:50%;background:linear-gradient(90deg,transparent,rgba(255,255,255,.52),transparent);filter:blur(2px);animation:wave 2.8s ease-in-out infinite;}
+@keyframes shimmer{0%,100%{transform:translateX(-22%)}50%{transform:translateX(22%)}}
+@keyframes wave{0%,100%{transform:translateX(-3%) scaleX(.96);opacity:.35}50%{transform:translateX(4%) scaleX(1.04);opacity:.7}}
+.cube-glass{position:absolute;inset:7%;z-index:5;pointer-events:none;background:linear-gradient(145deg,rgba(255,255,255,.10),transparent 26%,rgba(255,255,255,.025) 58%,rgba(114,201,244,.035));box-shadow:inset 0 0 34px rgba(255,255,255,.13),inset 0 -16px 24px rgba(89,189,231,.045);}
+.cube-reflection{position:absolute;z-index:0;left:8%;right:8%;bottom:-4%;height:18%;border-radius:50%;background:radial-gradient(ellipse,rgba(100,203,239,.25),rgba(115,211,243,.10) 45%,transparent 76%);filter:blur(13px);pointer-events:none;}
+@media(max-width:430px){.cube-stage{width:86vw;height:86vw;max-height:350px;margin-top:14px}.summary{margin-top:0}.timeline{margin-top:30px}.screen{padding-bottom:104px}}
 </style>
 </head>
 <body><div id="app"></div>
@@ -384,7 +391,7 @@ function renderGoalResult(value){
 }
 
 function render(){let total=entries.reduce((s,e)=>s+e.amount,0),pct=Math.round(total/Math.max(profile.goal,1)*100),p=Math.min(total/Math.max(profile.goal,1),1)*100,waterStartP=lastWaterP===null?p:lastWaterP,waterStartY=Math.round(610-(610-275)*waterStartP),waterEndY=Math.round(610-(610-275)*Math.min(p,1));lastWaterP=p;let date=new Intl.DateTimeFormat('ru-RU',{weekday:'long',day:'numeric',month:'long'}).format(new Date());let body='';
-if(tab==='today')body=`<section class="screen"><div class="top"><div><div class="eyebrow">AQUA CUBE</div><h1>Сегодня</h1><p class="date">${date}</p></div><button class="gear-button" id="settings" aria-label="Настройки" title="Настройки">${ICON.gear}</button></div><main class="today"><div class="cube-stage"><div class="cube"><div class="cube-inner-glass" aria-hidden="true"></div><img class="cube-shell-clear" src="cube-shell-clear-v10.png" alt="" aria-hidden="true"><img class="cube-water-texture" src="water-texture-v10-crop.png" alt="" aria-hidden="true" style="--water-scale:${(p===0?0:(p<=.38?p/.38:1+(Math.min(p,1)-.38)/.62*.45))};"><div class="cube-front-light" aria-hidden="true"></div><div class="cube-glass"></div><div class="cube-reflection"></div></div></div><div class="summary"><strong>${ml(total)} мл</strong><span>из ${ml(profile.goal)} мл</span><small>${total<profile.goal?'Осталось '+ml(profile.goal-total)+' мл':'Цель достигнута'}</small></div><div class="add"><button class="primary" id="add">+ ${ml(profile.volume)} мл</button><button class="toggle" id="toggle">⌄</button><div class="menu hidden" id="menu">${presets.map(v=>`<button class="${v===profile.volume?'selected':''}" data-v="${v}">${v} мл</button>`).join('')}<button class="other" id="other">Другой объём</button></div></div><div class="timeline"><div class="line"></div><div class="dot"></div><div class="labels"><span>Сегодня</span><span>${pct}%</span></div></div></main><nav class="nav"><button class="active" data-tab="today"><span class="nav-icon">${ICON.today}</span><span>Сегодня</span></button><button data-tab="history"><span class="nav-icon">${ICON.history}</span><span>История</span></button><button data-tab="tools"><span class="nav-icon">${ICON.tools}</span><span>Инструменты</span></button></nav></section>`;
+if(tab==='today')body=`<section class="screen"><div class="top"><div><div class="eyebrow">AQUA CUBE</div><h1>Сегодня</h1><p class="date">${date}</p></div><button class="gear-button" id="settings" aria-label="Настройки" title="Настройки">${ICON.gear}</button></div><main class="today"><div class="cube-stage"><div class="cube" data-level="${Math.min(4,Math.round(p/25))}" aria-label="Уровень воды ${Math.round(p)} процентов"><img class="cube-level level-0" src="cube-level-0.webp" alt="" aria-hidden="true"><img class="cube-level level-25" src="cube-level-25.webp" alt="" aria-hidden="true"><img class="cube-level level-50" src="cube-level-50.webp" alt="" aria-hidden="true"><img class="cube-level level-75" src="cube-level-75.webp" alt="" aria-hidden="true"><img class="cube-level level-100" src="cube-level-100.webp" alt="" aria-hidden="true"><div class="water-shimmer" aria-hidden="true"></div><div class="cube-glass" aria-hidden="true"></div><div class="cube-reflection" aria-hidden="true"></div></div></div><div class="summary"><strong>${ml(total)} мл</strong><span>из ${ml(profile.goal)} мл</span><small>${total<profile.goal?'Осталось '+ml(profile.goal-total)+' мл':'Цель достигнута'}</small></div><div class="add"><button class="primary" id="add">+ ${ml(profile.volume)} мл</button><button class="toggle" id="toggle">⌄</button><div class="menu hidden" id="menu">${presets.map(v=>`<button class="${v===profile.volume?'selected':''}" data-v="${v}">${v} мл</button>`).join('')}<button class="other" id="other">Другой объём</button></div></div><div class="timeline"><div class="line"></div><div class="dot"></div><div class="labels"><span>Сегодня</span><span>${pct}%</span></div></div></main><nav class="nav"><button class="active" data-tab="today"><span class="nav-icon">${ICON.today}</span><span>Сегодня</span></button><button data-tab="history"><span class="nav-icon">${ICON.history}</span><span>История</span></button><button data-tab="tools"><span class="nav-icon">${ICON.tools}</span><span>Инструменты</span></button></nav></section>`;
 else if(tab==='history')body=historyView();
 else if(tab==='tools')body=toolView==='goal-calculator'?goalCalculatorView():toolsView();
 else body=`<section class="screen"><div class="eyebrow">AQUA CUBE</div><h1>Настройки</h1><div class="card settings"><label>Дневная цель<input id="goal" type="number" min="250" max="10000" step="50" value="${profile.goal}"></label><label>Объём по умолчанию<select id="volume">${presets.map(v=>`<option value="${v}" ${v===profile.volume?'selected':''}>${v} мл</option>`).join('')}</select></label><label>Тема<select id="theme"><option value="system" ${profile.theme==='system'?'selected':''}>Системная</option><option value="light" ${profile.theme==='light'?'selected':''}>Светлая</option><option value="dark" ${profile.theme==='dark'?'selected':''}>Тёмная</option></select></label><button class="primary full" id="save">Сохранить</button></div><div class="card data-tools"><b>Данные</b><span>Safari и версия на экране «Домой» могут иметь отдельное локальное хранилище. Здесь можно безопасно перенести данные между ними.</span><div class="data-actions"><button class="secondary" id="exportData">Экспорт</button><button class="secondary" id="importData">Импорт</button><input id="importFile" type="file" accept="application/json,.json" hidden></div></div><div class="card"><b>Aqua Cube</b><span>Локальное приложение без аккаунта и Apple Health.</span></div><button class="back" id="back">Назад</button></section>`;
@@ -445,7 +452,7 @@ boot();
 (async()=>{
   try{
     if(!('serviceWorker' in navigator)) return;
-    const reg=await navigator.serviceWorker.register('./service-worker.js?v=11',{updateViaCache:'none'});
+    const reg=await navigator.serviceWorker.register('./service-worker.js?v=13',{updateViaCache:'none'});
     await reg.update();
   }catch(e){console.warn('Aqua Cube PWA update:',e)}
 })();

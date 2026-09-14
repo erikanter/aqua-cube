@@ -1,5 +1,16 @@
-const VERSION="aqua-cube-v0.11-dynamic-water";
-const STATIC=["./","./index.html","./manifest.webmanifest","./icon-192.png","./icon-512.png","./apple-touch-icon.png","./apple-touch-icon-v2.png","./cube-shell-clear-v10.png","./water-texture-v10-crop.png"];
-self.addEventListener("install",e=>e.waitUntil(caches.open(VERSION).then(c=>c.addAll(STATIC)).then(()=>self.skipWaiting())));
-self.addEventListener("activate",e=>e.waitUntil((async()=>{const keys=await caches.keys();await Promise.all(keys.filter(k=>k!==VERSION).map(k=>caches.delete(k)));await self.clients.claim()})()));
-self.addEventListener("fetch",e=>{const r=e.request,u=new URL(r.url);if(r.method!=="GET"||u.origin!==self.location.origin)return;if(r.mode==="navigate"||u.pathname.endsWith("/index.html")||u.pathname.endsWith("/")){e.respondWith(fetch(r,{cache:"no-store"}).then(res=>{const c=res.clone();caches.open(VERSION).then(x=>x.put(r,c));return res}).catch(()=>caches.match(r).then(x=>x||caches.match("./index.html"))))}else{e.respondWith(caches.match(r).then(x=>x||fetch(r).then(res=>{const c=res.clone();caches.open(VERSION).then(y=>y.put(r,c));return res})))} });
+const CACHE='aqua-cube-v0.13';
+const ASSETS=[
+ './','./index.html','./manifest.webmanifest','./icon-192.png','./icon-512.png','./apple-touch-icon-v2.png',
+ './cube-level-0.webp','./cube-level-25.webp','./cube-level-50.webp','./cube-level-75.webp','./cube-level-100.webp'
+];
+self.addEventListener('install',event=>{event.waitUntil(caches.open(CACHE).then(c=>c.addAll(ASSETS)).then(()=>self.skipWaiting()))});
+self.addEventListener('activate',event=>{event.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(k=>k!==CACHE).map(k=>caches.delete(k)))).then(()=>self.clients.claim()))});
+self.addEventListener('fetch',event=>{
+ const req=event.request;
+ if(req.method!=='GET') return;
+ if(req.mode==='navigate'){
+  event.respondWith(fetch(req,{cache:'no-store'}).then(r=>{const copy=r.clone();caches.open(CACHE).then(c=>c.put('./index.html',copy));return r}).catch(()=>caches.match('./index.html')));
+  return;
+ }
+ event.respondWith(caches.match(req).then(cached=>cached||fetch(req).then(r=>{const copy=r.clone();caches.open(CACHE).then(c=>c.put(req,copy));return r}).catch(()=>cached)));
+});
