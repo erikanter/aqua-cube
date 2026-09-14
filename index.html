@@ -139,6 +139,37 @@ h1{font-size:32px;line-height:1.1;margin:3px 0 5px;letter-spacing:-.7px}.date{ma
 .tool-card{display:grid;grid-template-columns:58px 1fr 24px;align-items:center;column-gap:12px;padding:12px 14px;border-radius:22px;background:rgba(255,255,255,.68);border-color:rgba(210,225,233,.9);box-shadow:0 12px 28px rgba(54,103,126,.09),inset 0 1px 0 rgba(255,255,255,.8);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px)}
 .tool-card b{margin:0;font-size:17px}.tool-card span{font-size:14px}.tool-icon{width:52px;height:52px;margin:0;border-radius:18px;background:rgba(206,238,250,.46);box-shadow:inset 0 1px 0 rgba(255,255,255,.85)}.tool-icon .icon-img{width:46px!important;height:46px!important}.tool-card::after{content:'›';grid-column:3;grid-row:1 / span 2;color:#6b8494;font-size:28px;font-weight:300;text-align:center}.tool-card>*:not(.tool-icon){grid-column:2}.tool-card b{grid-row:1}.tool-card span{grid-row:2}.tool-card .tool-icon{grid-column:1;grid-row:1 / span 2}
 @media(max-width:430px){.screen{padding-left:24px;padding-right:24px}.cube-stage{width:94vw;height:94vw;max-height:390px;margin-top:18px}.summary{margin-top:0}.timeline{margin-top:36px}.nav{width:calc(100% - 28px)}}
+
+/* v0.9.4 — faithful approved Today composition; preserve existing cube asset */
+body{background:
+ radial-gradient(700px 520px at 50% 48%,rgba(184,229,250,.52),transparent 66%),
+ radial-gradient(420px 300px at 8% 78%,rgba(226,246,253,.82),transparent 72%),
+ radial-gradient(440px 320px at 94% 80%,rgba(217,242,252,.78),transparent 72%),
+ linear-gradient(180deg,#F9FCFE 0%,#F3FAFD 48%,#EAF7FC 100%);}
+.screen{padding-top:28px;}
+.today{padding-top:8px;min-height:0;position:relative;}
+.today::before{top:92px;width:520px;height:520px;background:radial-gradient(circle,rgba(150,219,247,.26),rgba(184,231,249,.18) 36%,rgba(220,244,252,.10) 56%,transparent 74%);filter:blur(18px);}
+.today::after{top:245px;height:420px;opacity:.95;background:
+ linear-gradient(115deg,transparent 8%,rgba(255,255,255,.42) 20%,transparent 31%),
+ linear-gradient(67deg,transparent 63%,rgba(255,255,255,.38) 75%,transparent 88%),
+ radial-gradient(ellipse at 50% 88%,rgba(94,190,231,.24),transparent 56%);filter:blur(11px);}
+.cube-stage{width:min(66vw,390px);height:min(66vw,390px);margin:26px auto 0;display:grid;place-items:center;}
+.cube-stage::before{left:-4%;right:-4%;bottom:2%;height:24%;background:radial-gradient(ellipse,rgba(72,177,223,.34) 0%,rgba(104,202,237,.22) 34%,rgba(177,229,247,.10) 58%,transparent 76%);filter:blur(18px);transform:scaleX(1.25);}
+.cube-stage::after{left:-24%;right:-24%;bottom:-4%;height:30%;background:
+ linear-gradient(90deg,transparent 0%,rgba(255,255,255,.18) 12%,rgba(121,210,244,.25) 29%,rgba(255,255,255,.18) 48%,rgba(121,210,244,.24) 68%,rgba(255,255,255,.12) 84%,transparent 100%);filter:blur(19px);transform:perspective(320px) rotateX(58deg);opacity:.95;}
+.cube{width:100%;height:100%;transform:translateY(-3px);}
+.cube-art{filter:drop-shadow(0 24px 22px rgba(50,120,158,.22)) drop-shadow(0 8px 13px rgba(50,120,158,.10)) saturate(1.06) contrast(1.02);}
+.cube-reflection-art{position:absolute;left:9%;right:9%;bottom:-8%;width:82%;height:auto;z-index:0;transform:scaleY(-.22);transform-origin:50% 0%;opacity:.18;filter:blur(3px) saturate(1.08);-webkit-mask-image:linear-gradient(to bottom,rgba(0,0,0,.7),transparent 88%);mask-image:linear-gradient(to bottom,rgba(0,0,0,.7),transparent 88%);pointer-events:none;}
+.dynamic-water{z-index:3;left:18%;right:18%;bottom:13%;opacity:.44;}
+.cube-glass{opacity:.9;box-shadow:inset 0 0 40px rgba(255,255,255,.18),inset 0 -22px 28px rgba(89,189,231,.09);}
+.cube-reflection{bottom:-10%;height:26%;background:radial-gradient(ellipse,rgba(107,207,239,.30),rgba(107,207,239,.13) 44%,transparent 75%);filter:blur(14px);transform:scaleY(.30);}
+.summary{margin-top:-4px;}
+.add{margin-top:26px;}
+.timeline{margin-top:38px;}
+.nav{height:76px;}
+@media(max-width:430px){.cube-stage{width:66vw;height:66vw;max-height:360px;margin-top:22px}.summary{margin-top:-2px}.timeline{margin-top:34px}.screen{padding-bottom:104px}}
+@media(max-height:760px){.screen{padding-top:22px}.today{padding-top:2px}.cube-stage{width:min(58vw,330px);height:min(58vw,330px);margin-top:12px}.summary strong{font-size:29px}.summary small{margin-top:7px}.add{margin-top:18px}.timeline{margin-top:26px}.nav{height:70px}}
+
 </style>
 </head>
 <body><div id="app"></div>
@@ -307,7 +338,7 @@ function renderGoalResult(value){
 }
 
 function render(){let total=entries.reduce((s,e)=>s+e.amount,0),pct=Math.round(total/Math.max(profile.goal,1)*100),p=Math.min(total/Math.max(profile.goal,1),1)*100;let date=new Intl.DateTimeFormat('ru-RU',{weekday:'long',day:'numeric',month:'long'}).format(new Date());let body='';
-if(tab==='today')body=`<section class="screen"><div class="top"><div><div class="eyebrow">AQUA CUBE</div><h1>Сегодня</h1><p class="date">${date}</p></div><button class="gear-button" id="settings" aria-label="Настройки" title="Настройки">${ICON.gear}</button></div><main class="today"><div class="cube-stage"><div class="cube"><img class="cube-art" src="cube-shell.png" alt="Ледяной куб"><div class="dynamic-water" style="height:${Math.min(p,58)}%"></div><div class="cube-glass"></div><div class="cube-reflection"></div></div></div><div class="summary"><strong>${ml(total)} мл</strong><span>из ${ml(profile.goal)} мл</span><small>${total<profile.goal?'Осталось '+ml(profile.goal-total)+' мл':'Цель достигнута'}</small></div><div class="add"><button class="primary" id="add">+ ${ml(profile.volume)} мл</button><button class="toggle" id="toggle">⌄</button><div class="menu hidden" id="menu">${presets.map(v=>`<button class="${v===profile.volume?'selected':''}" data-v="${v}">${v} мл</button>`).join('')}<button class="other" id="other">Другой объём</button></div></div><div class="timeline"><div class="line"></div><div class="dot"></div><div class="labels"><span>Сегодня</span><span>${pct}%</span></div></div></main><nav class="nav"><button class="active" data-tab="today"><span class="nav-icon">${ICON.today}</span><span>Сегодня</span></button><button data-tab="history"><span class="nav-icon">${ICON.history}</span><span>История</span></button><button data-tab="tools"><span class="nav-icon">${ICON.tools}</span><span>Инструменты</span></button></nav></section>`;
+if(tab==='today')body=`<section class="screen"><div class="top"><div><div class="eyebrow">AQUA CUBE</div><h1>Сегодня</h1><p class="date">${date}</p></div><button class="gear-button" id="settings" aria-label="Настройки" title="Настройки">${ICON.gear}</button></div><main class="today"><div class="cube-stage"><div class="cube"><img class="cube-art" src="cube-shell.png" alt="Ледяной куб"><img class="cube-reflection-art" src="cube-shell.png" alt="" aria-hidden="true"><div class="dynamic-water" style="height:${Math.min(p,58)}%"></div><div class="cube-glass"></div><div class="cube-reflection"></div></div></div><div class="summary"><strong>${ml(total)} мл</strong><span>из ${ml(profile.goal)} мл</span><small>${total<profile.goal?'Осталось '+ml(profile.goal-total)+' мл':'Цель достигнута'}</small></div><div class="add"><button class="primary" id="add">+ ${ml(profile.volume)} мл</button><button class="toggle" id="toggle">⌄</button><div class="menu hidden" id="menu">${presets.map(v=>`<button class="${v===profile.volume?'selected':''}" data-v="${v}">${v} мл</button>`).join('')}<button class="other" id="other">Другой объём</button></div></div><div class="timeline"><div class="line"></div><div class="dot"></div><div class="labels"><span>Сегодня</span><span>${pct}%</span></div></div></main><nav class="nav"><button class="active" data-tab="today"><span class="nav-icon">${ICON.today}</span><span>Сегодня</span></button><button data-tab="history"><span class="nav-icon">${ICON.history}</span><span>История</span></button><button data-tab="tools"><span class="nav-icon">${ICON.tools}</span><span>Инструменты</span></button></nav></section>`;
 else if(tab==='history')body=historyView();
 else if(tab==='tools')body=toolView==='goal-calculator'?goalCalculatorView():toolsView();
 else body=`<section class="screen"><div class="eyebrow">AQUA CUBE</div><h1>Настройки</h1><div class="card settings"><label>Дневная цель<input id="goal" type="number" min="250" max="10000" step="50" value="${profile.goal}"></label><label>Объём по умолчанию<select id="volume">${presets.map(v=>`<option value="${v}" ${v===profile.volume?'selected':''}>${v} мл</option>`).join('')}</select></label><label>Тема<select id="theme"><option value="system" ${profile.theme==='system'?'selected':''}>Системная</option><option value="light" ${profile.theme==='light'?'selected':''}>Светлая</option><option value="dark" ${profile.theme==='dark'?'selected':''}>Тёмная</option></select></label><button class="primary full" id="save">Сохранить</button></div><div class="card"><b>Aqua Cube</b><span>Локальное приложение без аккаунта и Apple Health.</span></div><button class="back" id="back">Назад</button></section>`;
@@ -342,7 +373,7 @@ boot();
 (async()=>{
   try{
     if(!('serviceWorker' in navigator)) return;
-    const reg=await navigator.serviceWorker.register('./service-worker.js?v=10',{updateViaCache:'none'});
+    const reg=await navigator.serviceWorker.register('./service-worker.js?v=11',{updateViaCache:'none'});
     await reg.update();
   }catch(e){console.warn('Aqua Cube PWA update:',e)}
 })();
