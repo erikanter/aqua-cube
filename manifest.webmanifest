@@ -1,26 +1,10 @@
 {
-  "name": "Aqua Cube",
-  "short_name": "Aqua Cube",
-  "description": "Спокойный контроль водного баланса",
-  "start_url": "./",
-  "scope": "./",
-  "display": "standalone",
-  "background_color": "#F7FAFC",
-  "theme_color": "#F7FAFC",
-  "orientation": "portrait",
-  "lang": "ru",
-  "icons": [
-    {
-      "src": "icon-192.png",
-      "sizes": "192x192",
-      "type": "image/png",
-      "purpose": "any maskable"
-    },
-    {
-      "src": "icon-512.png",
-      "sizes": "512x512",
-      "type": "image/png",
-      "purpose": "any maskable"
-    }
-  ]
+  "name":"Aqua Cube",
+  "short_name":"Aqua Cube",
+  "start_url":"./",
+  "display":"standalone",
+  "background_color":"#F7FAFC",
+  "theme_color":"#F7FAFC",
+  "orientation":"portrait",
+  "icons":[{"src":"./icon-192.png","sizes":"192x192","type":"image/png","purpose":"any maskable"},{"src":"./icon-512.png","sizes":"512x512","type":"image/png","purpose":"any maskable"}]
 }
