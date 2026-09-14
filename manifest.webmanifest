@@ -1,1 +1,12 @@
-{"name":"Aqua Cube","short_name":"Aqua Cube","start_url":"./","scope":"./","display":"standalone","background_color":"#F7FAFC","theme_color":"#F7FAFC","orientation":"portrait","lang":"ru"}
+{
+  "name":"Aqua Cube",
+  "short_name":"Aqua Cube",
+  "description":"Спокойный контроль водного баланса",
+  "start_url":"./",
+  "scope":"./",
+  "display":"standalone",
+  "background_color":"#F7FAFC",
+  "theme_color":"#F7FAFC",
+  "orientation":"portrait",
+  "lang":"ru"
+}

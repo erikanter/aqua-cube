@@ -1,1 +1,5 @@
-const CACHE='aqua-cube-v1';const ASSETS=['./','./index.html','./manifest.webmanifest','./src/app/app.js','./src/app/state.js','./src/data/db.js','./src/views/today.js','./src/views/history.js','./src/views/tools.js','./src/views/settings.js','./src/design/style.css'];self.addEventListener('install',e=>e.waitUntil(caches.open(CACHE).then(c=>c.addAll(ASSETS)).then(()=>self.skipWaiting())));self.addEventListener('activate',e=>e.waitUntil(self.clients.claim()));self.addEventListener('fetch',e=>e.respondWith(caches.match(e.request).then(r=>r||fetch(e.request).catch(()=>caches.match('./index.html')))));
+const CACHE='aqua-cube-v0.1.1';
+const CORE=['./','./index.html','./manifest.webmanifest','./service-worker.js'];
+self.addEventListener('install',e=>e.waitUntil(caches.open(CACHE).then(c=>c.addAll(CORE)).then(()=>self.skipWaiting())));
+self.addEventListener('activate',e=>e.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(k=>k!==CACHE).map(k=>caches.delete(k)))).then(()=>self.clients.claim())));
+self.addEventListener('fetch',e=>{if(e.request.method!=='GET')return;e.respondWith(caches.match(e.request).then(c=>c||fetch(e.request)));});
