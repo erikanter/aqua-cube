@@ -2,7 +2,8 @@
 <html lang="ru">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<link rel="apple-touch-icon" href="assets/apple-touch-icon.png?v=5">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#F7FAFC">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
@@ -30,6 +31,42 @@
 .stats-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:20px}.stat-card{padding:18px;border:1px solid var(--divider);border-radius:22px;background:var(--surface);box-shadow:var(--shadow)}.stat-card span,.stat-card small{display:block;color:var(--secondary);font-size:13px}.stat-card strong{display:block;margin:8px 0 2px;font-size:23px;letter-spacing:-.4px}.chart-card{margin-top:12px}.section-title{display:flex;justify-content:space-between;align-items:center}.section-title span{font-size:12px;color:var(--secondary)}.chart{height:190px;display:grid;grid-template-columns:repeat(7,1fr);gap:7px;align-items:end;margin-top:18px}.bar-wrap{height:100%;display:flex;flex-direction:column;align-items:center;justify-content:end;background:transparent;color:var(--secondary);padding:0}.bar-value{font-size:10px;height:18px}.bar-track{height:135px;width:24px;border-radius:999px;background:rgba(114,201,244,.09);display:flex;align-items:end;overflow:hidden}.bar-track i{display:block;width:100%;border-radius:999px;background:linear-gradient(180deg,rgba(114,201,244,.62),rgba(114,201,244,.95));transition:height .35s ease}.bar-day{font-size:11px;margin-top:7px;text-transform:capitalize}.bar-wrap.today-bar .bar-track{box-shadow:0 0 0 2px rgba(114,201,244,.16)}.bar-wrap.chosen .bar-track{box-shadow:0 0 0 3px rgba(114,201,244,.25)}.goal-caption{display:flex;justify-content:space-between;gap:12px;margin-top:14px;font-size:11px;color:var(--secondary)}.day-list{display:grid;gap:8px;margin-top:12px}.day-row{width:100%;display:grid;grid-template-columns:1fr auto auto;align-items:center;gap:12px;text-align:left;padding:15px 16px;border:1px solid var(--divider);border-radius:18px;background:var(--surface);color:var(--text)}.day-row strong{font-size:14px}.day-info b,.day-info small{display:block}.day-info small{margin-top:4px;color:var(--secondary);font-size:12px}.today-row{border-color:rgba(114,201,244,.38)}.chevron{font-size:24px;color:var(--secondary);line-height:1}.detail{margin-top:12px}.detail-head{display:flex;justify-content:space-between;align-items:start}.detail-head b,.detail-head span{display:block}.detail-head span{margin-top:5px;color:var(--secondary);font-size:13px}.close-detail{width:30px;height:30px;border-radius:50%;background:rgba(114,201,244,.12);color:var(--text);font-size:20px;line-height:1}.detail-progress{height:7px;background:var(--divider);border-radius:999px;overflow:hidden;margin-top:16px}.detail-progress div{height:100%;background:var(--primary);border-radius:inherit}.entry-list{margin-top:10px}.entry-row{display:flex;justify-content:space-between;padding:11px 0;border-bottom:1px solid var(--divider);font-size:14px}.entry-row:last-child{border-bottom:0}.entry-row span,.empty{color:var(--secondary)}
 
 @keyframes float{0%,100%{transform:translateX(-1%) scaleY(1)}50%{transform:translateX(1%) scaleY(.82)}}
+
+/* Aqua Cube — Settings Gear, Variant 4 */
+.gear-button{
+  width:56px;height:56px;border:0;border-radius:50%;
+  display:grid;place-items:center;
+  background:var(--surface);
+  color:var(--primary-dark);
+  box-shadow:0 10px 28px rgba(18,48,68,.08);
+  border:1px solid rgba(221,229,234,.72);
+  -webkit-tap-highlight-color:transparent;
+}
+.gear-button:active{transform:scale(.94)}
+.gear-v4{width:31px;height:31px;display:block}
+.gear-v4 path{fill:currentColor}
+.gear-v4 circle{fill:var(--surface)}
+@media (prefers-color-scheme:dark){
+  .gear-button{box-shadow:0 10px 28px rgba(0,0,0,.24);border-color:rgba(255,255,255,.10)}
+}
+
+
+/* Aqua Cube unified icon system v1 */
+.tool-icon svg,.nav-icon svg,.gear-button svg{width:100%;height:100%;display:block}
+.tool-icon svg path,.tool-icon svg circle,.tool-icon svg rect,
+.nav-icon svg path,.nav-icon svg circle,.nav-icon svg rect,
+.gear-button svg path,.gear-button svg circle{
+  fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;
+}
+.tool-icon svg rect{fill:none}
+.tool-icon{color:var(--primary-dark);display:grid;place-items:center}
+.tool-icon svg{width:26px;height:26px}
+.nav-icon{width:22px;height:22px;display:block;margin:0 auto 3px;color:currentColor}
+.nav-icon svg{width:22px;height:22px}
+.nav button{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;line-height:1.05}
+.nav button.active .nav-icon{color:var(--primary)}
+.gear-button svg{width:31px;height:31px}
+
 </style>
 </head>
 <body><div id="app"></div>
@@ -128,18 +165,16 @@ function historyView(){
           </button>`).join('')}
       </div>
 
-      <nav class="nav"><button data-tab="today">Сегодня</button><button class="active" data-tab="history">История</button><button data-tab="tools">Инструменты</button></nav>
+      <nav class="nav"><button data-tab="today"><span class="nav-icon">${ICON.today}</span><span>Сегодня</span></button><button class="active" data-tab="history"><span class="nav-icon">${ICON.history}</span><span>История</span></button><button data-tab="tools"><span class="nav-icon">${ICON.tools}</span><span>Инструменты</span></button></nav>
     </section>`;
 }
 
 
+const ICON={today:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3.5 10.8 12 3.7l8.5 7.1"/><path d="M5.5 9.7v10.8h13V9.7"/><path d="M9.2 20.5v-6.8h5.6v6.8"/></svg>',history:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 19.5V14"/><path d="M10 19.5V9"/><path d="M16 19.5V5"/><path d="M22 19.5V2.5"/></svg>',tools:'<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="4" width="6" height="6" rx="1.5"/><rect x="14" y="4" width="6" height="6" rx="1.5"/><rect x="4" y="14" width="6" height="6" rx="1.5"/><rect x="14" y="14" width="6" height="6" rx="1.5"/></svg>',drop:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3.1S5.8 10.1 5.8 14.8a6.2 6.2 0 0 0 12.4 0C18.2 10.1 12 3.1 12 3.1Z"/></svg>',convert:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 8h12"/><path d="m14 4 4 4-4 4"/><path d="M19 16H7"/><path d="m10 12-4 4 4 4"/></svg>',clock:'<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><path d="M12 7.5v5l3.2 2"/></svg>',book:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 4.5h5.3c1 0 1.7.7 1.7 1.7v13.3c0-1-0.7-1.7-1.7-1.7H5z"/><path d="M19 4.5h-5.3c-1 0-1.7.7-1.7 1.7v13.3c0-1 .7-1.7 1.7-1.7H19z"/></svg>',bottle:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 3.5h6"/><path d="M10 3.5v3l-2 2.2v10.1c0 1.2.8 1.9 2 1.9h4c1.2 0 2-.7 2-1.9V8.7L14 6.5v-3"/><path d="M8 10h8"/></svg>',gear:'<svg viewBox="0 0 48 48" aria-hidden="true"><path d="M20.3 4.9h7.4l1.2 4.3c1.1.4 2.2.9 3.1 1.6l4.2-1.1 3.7 6.4-3.1 3.1c.2.6.3 1.3.3 2s-.1 1.4-.3 2l3.1 3.1-3.7 6.4-4.2-1.1c-.9.7-2 1.2-3.1 1.6l-1.2 4.3h-7.4l-1.2-4.3c-1.1-.4-2.2-.9-3.1-1.6l-4.2 1.1-3.7-6.4 3.1-3.1c-.2-.6-.3-1.3-.3-2s.1-1.4.3-2l-3.1-3.1 3.7-6.4 4.2 1.1c.9-.7 2-1.2 3.1-1.6l1.2-4.3Z"/><circle cx="24" cy="21.2" r="7.1"/></svg>',bell:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 16.5h12l-1.5-2.2V10a4.5 4.5 0 0 0-9 0v4.3z"/><path d="M9.8 19a2.5 2.5 0 0 0 4.4 0"/></svg>',dropplus:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10.5 4.1S6 9.3 6 13a4.5 4.5 0 0 0 9 0c0-3.7-4.5-8.9-4.5-8.9Z"/><path d="M18 14v6"/><path d="M15 17h6"/></svg>',edit:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m5 17.8-.8 3 3-.8L19.5 7.7a2.1 2.1 0 0 0-3-3z"/><path d="m14.8 5.7 3.5 3.5"/></svg>',delete:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 7h14"/><path d="M9 7V4.5h6V7"/><path d="m7 7 .8 13h8.4L17 7"/><path d="M10 10.5v6.5"/><path d="M14 10.5v6.5"/></svg>',next:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 5 7 7-7 7"/></svg>',back:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m15 5-7 7 7 7"/></svg>',close:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 6 12 12"/><path d="M18 6 6 18"/></svg>',check:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg>'};
+
 function toolsView(){
   const tools = [
-    ['💧','Рассчитать цель','Ориентир по весу.','goal-calculator'],
-    ['↔','Конвертер','мл, л, oz и стаканы.','converter'],
-    ['◷','Распределить воду','Спокойный план на день.','distribution'],
-    ['⌁','Знания','Проверенные материалы.','knowledge'],
-    ['▱','Мои объёмы','Собственные бутылки и стаканы.','volumes']
+    ['DROP','Рассчитать цель','Ориентир по весу.','goal-calculator'], ['CONVERT','Конвертер','мл, л, oz и стаканы.','converter'], ['CLOCK','Распределить воду','Спокойный план на день.','distribution'], ['BOOK','Знания','Проверенные материалы.','knowledge'], ['BOTTLE','Мои объёмы','Собственные бутылки и стаканы.','volumes']
   ];
   return `
     <section class="screen">
@@ -149,12 +184,12 @@ function toolsView(){
       <div class="list">
         ${tools.map(t=>`
           <button class="tool-card" data-tool="${t[3]}">
-            <div class="tool-icon">${t[0]}</div>
+            <div class="tool-icon">${({'DROP':ICON.drop,'CONVERT':ICON.convert,'CLOCK':ICON.clock,'BOOK':ICON.book,'BOTTLE':ICON.bottle}[t[0]])}</div>
             <b>${t[1]}</b>
             <span>${t[2]}</span>
           </button>`).join('')}
       </div>
-      <nav class="nav"><button data-tab="today">Сегодня</button><button data-tab="history">История</button><button class="active" data-tab="tools">Инструменты</button></nav>
+      <nav class="nav"><button data-tab="today"><span class="nav-icon">${ICON.today}</span><span>Сегодня</span></button><button data-tab="history"><span class="nav-icon">${ICON.history}</span><span>История</span></button><button class="active" data-tab="tools"><span class="nav-icon">${ICON.tools}</span><span>Инструменты</span></button></nav>
     </section>`;
 }
 
@@ -200,7 +235,7 @@ function renderGoalResult(value){
 }
 
 function render(){let total=entries.reduce((s,e)=>s+e.amount,0),pct=Math.round(total/Math.max(profile.goal,1)*100),p=Math.min(total/Math.max(profile.goal,1),1)*100;let date=new Intl.DateTimeFormat('ru-RU',{weekday:'long',day:'numeric',month:'long'}).format(new Date());let body='';
-if(tab==='today')body=`<section class="screen"><div class="top"><div><div class="eyebrow">AQUA CUBE</div><h1>Сегодня</h1><p class="date">${date}</p></div><button class="gear" id="settings" aria-label="Настройки"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 8.1a3.9 3.9 0 1 0 0 7.8 3.9 3.9 0 0 0 0-7.8Zm8.1 3.9c0-.45-.04-.89-.11-1.32l1.55-1.2-1.9-3.3-1.8.74a8.6 8.6 0 0 0-2.28-1.32L15.3 3.7h-3.8l-.27 1.9a8.6 8.6 0 0 0-2.28 1.32l-1.8-.74-1.9 3.3 1.55 1.2A8.1 8.1 0 0 0 6.7 12c0 .45.04.89.11 1.32l-1.55 1.2 1.9 3.3 1.8-.74a8.6 8.6 0 0 0 2.28 1.32l.27 1.9h3.8l.27-1.9a8.6 8.6 0 0 0 2.28-1.32l1.8.74 1.9-3.3-1.55-1.2c.07-.43.11-.87.11-1.32Z"/></svg></button></div><main class="today"><div class="cube"><div class="water" style="height:${p}%"><div class="surface"></div><div class="highlight"></div></div><div class="glass"></div><div class="edge"></div><div class="shine"></div></div><div class="summary"><strong>${ml(total)} мл</strong><span>из ${ml(profile.goal)} мл</span><small>${total<profile.goal?'Осталось '+ml(profile.goal-total)+' мл':'Цель достигнута'}</small></div><div class="add"><button class="primary" id="add">+ ${ml(profile.volume)} мл</button><button class="toggle" id="toggle">⌄</button><div class="menu hidden" id="menu">${presets.map(v=>`<button class="${v===profile.volume?'selected':''}" data-v="${v}">${v} мл</button>`).join('')}<button class="other" id="other">Другой объём</button></div></div><div class="timeline"><div class="line"></div><div class="dot"></div><div class="labels"><span>Сегодня</span><span>${pct}%</span></div></div></main><nav class="nav"><button class="active" data-tab="today">Сегодня</button><button data-tab="history">История</button><button data-tab="tools">Инструменты</button></nav></section>`;
+if(tab==='today')body=`<section class="screen"><div class="top"><div><div class="eyebrow">AQUA CUBE</div><h1>Сегодня</h1><p class="date">${date}</p></div><button class="gear-button" id="settings" aria-label="Настройки" title="Настройки">${ICON.gear}</button></div><main class="today"><div class="cube"><div class="water" style="height:${p}%"><div class="surface"></div><div class="highlight"></div></div><div class="glass"></div><div class="edge"></div><div class="shine"></div></div><div class="summary"><strong>${ml(total)} мл</strong><span>из ${ml(profile.goal)} мл</span><small>${total<profile.goal?'Осталось '+ml(profile.goal-total)+' мл':'Цель достигнута'}</small></div><div class="add"><button class="primary" id="add">+ ${ml(profile.volume)} мл</button><button class="toggle" id="toggle">⌄</button><div class="menu hidden" id="menu">${presets.map(v=>`<button class="${v===profile.volume?'selected':''}" data-v="${v}">${v} мл</button>`).join('')}<button class="other" id="other">Другой объём</button></div></div><div class="timeline"><div class="line"></div><div class="dot"></div><div class="labels"><span>Сегодня</span><span>${pct}%</span></div></div></main><nav class="nav"><button class="active" data-tab="today"><span class="nav-icon">${ICON.today}</span><span>Сегодня</span></button><button data-tab="history"><span class="nav-icon">${ICON.history}</span><span>История</span></button><button data-tab="tools"><span class="nav-icon">${ICON.tools}</span><span>Инструменты</span></button></nav></section>`;
 else if(tab==='history')body=historyView();
 else if(tab==='tools')body=toolView==='goal-calculator'?goalCalculatorView():toolsView();
 else body=`<section class="screen"><div class="eyebrow">AQUA CUBE</div><h1>Настройки</h1><div class="card settings"><label>Дневная цель<input id="goal" type="number" min="250" max="10000" step="50" value="${profile.goal}"></label><label>Объём по умолчанию<select id="volume">${presets.map(v=>`<option value="${v}" ${v===profile.volume?'selected':''}>${v} мл</option>`).join('')}</select></label><label>Тема<select id="theme"><option value="system" ${profile.theme==='system'?'selected':''}>Системная</option><option value="light" ${profile.theme==='light'?'selected':''}>Светлая</option><option value="dark" ${profile.theme==='dark'?'selected':''}>Тёмная</option></select></label><button class="primary full" id="save">Сохранить</button></div><div class="card"><b>Aqua Cube</b><span>Локальное приложение без аккаунта и Apple Health.</span></div><button class="back" id="back">Назад</button></section>`;
