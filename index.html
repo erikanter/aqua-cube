@@ -10,6 +10,7 @@
 <meta name="apple-mobile-web-app-title" content="Aqua Cube">
 <link rel="manifest" href="./manifest.webmanifest">
 <title>Aqua Cube</title>
+<!-- Aqua Cube build 0.7: cache migration fixed -->
 <style>
 :root{--bg:#F7FAFC;--surface:rgba(255,255,255,.76);--text:#172027;--secondary:#73808A;--divider:#DDE5EA;--primary:#72C9F4;--primaryDark:#123044;--shadow:0 18px 40px rgba(18,48,68,.09)}
 :root[data-theme=dark]{--bg:#0E1418;--surface:rgba(25,34,40,.82);--text:#F3F8FA;--secondary:#9BAAB3;--divider:#2B3941;--primaryDark:#EAF8FF;--shadow:0 18px 40px rgba(0,0,0,.3)}
@@ -59,7 +60,7 @@
   flex:0 0 auto;
   width:var(--icon-size);
   height:var(--icon-size);
-  
+  background-image:none;
   background-repeat:no-repeat;
   background-position-y:0;
   background-size:calc(17 * var(--icon-size)) var(--icon-size);
@@ -320,11 +321,22 @@ async function boot(){
   render();
 }
 boot();
-// Service Worker is intentionally registered only after the UI has rendered.
-if ('serviceWorker' in navigator) {
-  window.addEventListener('load', () => {
-    navigator.serviceWorker.register('./service-worker.js')
-      .catch(error => console.warn('Service Worker:', error));
-  });
-}
+// Aqua Cube v0.7 — one-time cache migration, then network-only operation.
+// This preserves IndexedDB (water history/settings) while removing stale SW caches.
+(async()=>{
+  try{
+    if(!('serviceWorker' in navigator)) return;
+    const regs=await navigator.serviceWorker.getRegistrations();
+    if(!regs.length) return;
+    for(const r of regs) await r.unregister();
+    if('caches' in window){
+      const keys=await caches.keys();
+      await Promise.all(keys.map(k=>caches.delete(k)));
+    }
+    sessionStorage.setItem('aquaCubeCacheReset','1');
+    const clean=new URL(location.href);
+    clean.searchParams.delete('ac-reset');
+    location.replace(clean.href);
+  }catch(e){console.warn('Aqua Cube cache migration:',e)}
+})();
 </script><noscript><div style="padding:32px;font-family:system-ui">Для Aqua Cube нужен JavaScript.</div></noscript></body></html>
