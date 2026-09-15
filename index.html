@@ -213,6 +213,8 @@ body{background:
 .cube-stage::before{content:"";position:absolute;left:2%;right:2%;bottom:8%;height:25%;border-radius:50%;background:radial-gradient(ellipse,rgba(91,196,236,.28),rgba(145,222,245,.13) 45%,transparent 75%);filter:blur(18px);z-index:0;}
 .cube-stage::after{content:"";position:absolute;left:7%;right:7%;bottom:4%;height:12%;border-radius:50%;background:rgba(255,255,255,.26);filter:blur(10px);z-index:0;}
 .cube{position:relative;width:100%;height:100%;overflow:visible;background:transparent;border:0;box-shadow:none;border-radius:0;display:grid;place-items:center;z-index:1;}
+/* v0.14.7 — gently lift the cube without moving the content below */
+.cube{top:-18px;}
 .cube-level{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;display:block;opacity:0;transform:scale(.985);transition:opacity .55s ease,transform .55s cubic-bezier(.22,.8,.24,1);filter:drop-shadow(0 24px 22px rgba(50,120,158,.18)) drop-shadow(0 7px 11px rgba(50,120,158,.08));pointer-events:none;mix-blend-mode:normal;}
 .cube[data-level="0"] .level-0,.cube[data-level="1"] .level-25,.cube[data-level="2"] .level-50,.cube[data-level="3"] .level-75,.cube[data-level="4"] .level-100{opacity:1;transform:scale(1);}
 .water-shimmer{display:none;}
@@ -231,16 +233,6 @@ body{background:
 .cube-glass{box-shadow:none!important;background:linear-gradient(145deg,rgba(255,255,255,.08),transparent 28%,rgba(255,255,255,.02) 60%,rgba(114,201,244,.025));}
 </style>
 
-<style id="aqua-cube-five-levels">
-.cube-level-stack{position:relative;width:min(78vw,330px);aspect-ratio:628/684;margin:0 auto;display:block;isolation:isolate}
-.cube-level-image{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;display:block;opacity:0;pointer-events:none;transition:opacity .42s cubic-bezier(.22,.61,.36,1);will-change:opacity}
-.cube-level-image.level-0{opacity:1}
-.cube-level-stack[data-level="0"] .level-0{opacity:1}
-.cube-level-stack[data-level="25"] .level-25{opacity:1}
-.cube-level-stack[data-level="50"] .level-50{opacity:1}
-.cube-level-stack[data-level="75"] .level-75{opacity:1}
-.cube-level-stack[data-level="100"] .level-100{opacity:1}
-</style>
 
 </head>
 <body><div id="app"></div>
@@ -475,45 +467,8 @@ boot();
   }catch(e){console.warn('Aqua Cube PWA update:',e)}
 })();
 </script><noscript><div style="padding:32px;font-family:system-ui">Для Aqua Cube нужен JavaScript.</div></noscript>
-<script id="aqua-cube-five-levels-js">
-(function(){
-  function levelForPct(p){
-    p=Math.max(0,Number(p)||0);
-    if(p>=87.5) return 100;
-    if(p>=62.5) return 75;
-    if(p>=37.5) return 50;
-    if(p>=12.5) return 25;
-    return 0;
-  }
-  window.setCubeWaterLevel=function(p){
-    const stack=document.querySelector('.cube-level-stack');
-    if(!stack) return;
-    stack.dataset.level=String(levelForPct(p));
-  };
-})();
-</script>
 
 
-<script id="aqua-cube-five-levels-hook">
-(function(){
-  const originalText = window.render;
-  // Poll only the visible percentage text; this is deliberately isolated from data logic.
-  function sync(){
-    const els=[...document.querySelectorAll('body *')];
-    for(const el of els){
-      const t=(el.textContent||'').trim();
-      const m=t.match(/(\d{1,3})%/);
-      if(m && el.children.length===0){
-        const p=Math.min(100,Number(m[1]));
-        if(window.setCubeWaterLevel) window.setCubeWaterLevel(p);
-      }
-    }
-  }
-  new MutationObserver(sync).observe(document.body,{subtree:true,childList:true,characterData:true});
-  setTimeout(sync,100);
-  setInterval(sync,700);
-})();
-</script>
 
 </body></html>
 

@@ -1,7 +1,7 @@
-const CACHE='aqua-cube-v0.14.6';
+const CACHE='aqua-cube-v0.14.7';
 const ASSETS=[
  './','./index.html','./manifest.webmanifest','./icon-192.png','./icon-512.png','./apple-touch-icon-v2.png',
- './cube-level-0-final.webp','./cube-level-25-final.webp','./cube-level-50-final.webp','./cube-level-75-final.webp','./cube-level-100-final.webp'
+ './cube-level-0-final.png','./cube-level-25-final.png','./cube-level-50-final.png','./cube-level-75-final.png','./cube-level-100-final.png'
 ];
 self.addEventListener('install',event=>{event.waitUntil(caches.open(CACHE).then(c=>c.addAll(ASSETS)).then(()=>self.skipWaiting()))});
 self.addEventListener('activate',event=>{event.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(k=>k!==CACHE).map(k=>caches.delete(k)))).then(()=>self.clients.claim()))});
