@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <link rel="apple-touch-icon" href="apple-touch-icon-v2.png?v=8">
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="theme-color" content="#C7EAFE">
+<meta name="theme-color" content="#061B3B">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="Aqua Cube">
@@ -233,6 +233,55 @@ body{background:
 .cube-glass{box-shadow:none!important;background:linear-gradient(145deg,rgba(255,255,255,.08),transparent 28%,rgba(255,255,255,.02) 60%,rgba(114,201,244,.025));}
 </style>
 
+
+
+<style id="aqua-storm-background-v0148">
+:root{
+  --bg:#061b3b;
+  --surface:rgba(7,28,58,.58);
+  --text:#F7FBFF;
+  --secondary:#B7CDE1;
+  --divider:rgba(190,224,247,.22);
+  --primary:#8DD8FF;
+  --primaryDark:#06203D;
+  --shadow:0 18px 44px rgba(0,0,0,.28);
+}
+html,body{
+  background:#061b3b url('./storm-bg.svg') center top/cover fixed no-repeat !important;
+  color:var(--text) !important;
+}
+#app{background:transparent !important;}
+.screen{background:transparent !important;}
+.eyebrow,.date,.summary span,.summary small,.labels{color:var(--secondary) !important;}
+h1,.summary strong{color:#F7FBFF !important;}
+.gear,.card,.stat-card,.day-row,.tool-card,.form-card,.menu,.back,.tool-back{
+  background:rgba(7,28,58,.54) !important;
+  border-color:rgba(190,224,247,.24) !important;
+  box-shadow:0 16px 38px rgba(0,0,0,.22),inset 0 1px 0 rgba(255,255,255,.12) !important;
+  backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);
+  color:#F7FBFF !important;
+}
+.settings input,.settings select,.form-card input{background:rgba(2,14,32,.48) !important;color:#F7FBFF !important;border-color:rgba(190,224,247,.24) !important;}
+.primary{background:rgba(141,216,255,.82) !important;color:#06203D !important;box-shadow:0 12px 32px rgba(43,159,224,.24),inset 0 1px 0 rgba(255,255,255,.72) !important;}
+.toggle{color:#DDF5FF !important;}
+.menu button,.tool-card,.day-row,.back,.tool-back{color:#F7FBFF !important;}
+.menu .selected,.nav .active{background:rgba(112,201,246,.20) !important;}
+.nav{
+  background:rgba(5,24,51,.64) !important;
+  border-color:rgba(210,239,255,.28) !important;
+  box-shadow:0 18px 44px rgba(0,0,0,.34),inset 0 1px 0 rgba(255,255,255,.14) !important;
+  backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);
+}
+.nav button{color:#B7CDE1 !important;}
+.nav .active{color:#F7FBFF !important;}
+.line{background:rgba(190,224,247,.28) !important;}
+.dot{background:#8DD8FF !important;box-shadow:0 0 0 6px rgba(141,216,255,.16),0 0 18px rgba(141,216,255,.42) !important;}
+.calc-result{background:rgba(57,157,216,.12) !important;border-color:rgba(141,216,255,.32) !important;}
+.bar-track{background:rgba(141,216,255,.10) !important;}
+.bar-track i{background:linear-gradient(180deg,rgba(141,216,255,.62),rgba(91,190,239,.95)) !important;}
+.note,.tool-intro,.section-title span,.goal-caption,.empty{color:var(--secondary) !important;}
+/* The approved cube is intentionally untouched. */
+</style>
 
 </head>
 <body><div id="app"></div>
