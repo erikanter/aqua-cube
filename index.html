@@ -238,11 +238,11 @@ body{background:
 <body><div id="app"></div>
 <script>
 const DB='aqua-cube',KEY='profile',ENTRY='entries';
-const defaults={goal:2000,volume:250,theme:'system',customVolumes:[150,250,350,500],dayStart:'07:00',dayEnd:'23:00',planStep:120,tools:{converterValue:500,converterFrom:'ml',distributionPlan:[],goalWeight:''}};
+const defaults={goal:2000,volume:250,theme:'system',customVolumes:[150,250,350,500],dayStart:'07:00',dayEnd:'23:00',planStep:120,reminders:{enabled:false,quietStart:'22:30',quietEnd:'07:00'},tools:{converterValue:500,converterFrom:'ml',distributionPlan:[],goalWeight:''}};
 function toolState(){profile.tools={...defaults.tools,...(profile.tools||{})};return profile.tools}
 function toolBackHeader(){return `<button class="top-back" id="tools-back" aria-label="Назад" title="Назад">${ICON.back}</button>`}
 function settingsBackHeader(){return `<button class="top-back" id="settings-back" aria-label="Назад" title="Назад">${ICON.back}</button>`}
-let profile={...defaults},entries=[],allEntries=[],tab='today',selectedHistoryDate=null,toolView=null,lastWaterP=null;
+let profile={...defaults},entries=[],allEntries=[],tab='today',selectedHistoryDate=null,toolView=null,lastWaterP=null,reminderTimer=null,reminderLastAt=0;
 const presets=[100,150,200,250,330,500];
 const $=s=>document.querySelector(s);
 const ml=n=>new Intl.NumberFormat('ru-RU').format(n);
@@ -250,7 +250,7 @@ function todayKey(){return new Date().toISOString().slice(0,10)}
 function openDB(){return new Promise((res,rej)=>{let r=indexedDB.open(DB,1);r.onupgradeneeded=()=>{let d=r.result;if(!d.objectStoreNames.contains(KEY))d.createObjectStore(KEY,{keyPath:'id'});if(!d.objectStoreNames.contains(ENTRY))d.createObjectStore(ENTRY,{keyPath:'id'})};r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error)})}
 async function load(){let d=await openDB();let p=await new Promise((res,rej)=>{let r=d.transaction(KEY).objectStore(KEY).get('default');r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error)});profile=p?{...defaults,...p}:profile;profile.theme='system';toolState();allEntries=await new Promise((res,rej)=>{let r=d.transaction(ENTRY).objectStore(ENTRY).getAll();r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error)});entries=allEntries.filter(x=>x.date.slice(0,10)===todayKey());applyTheme()}
 async function saveProfile(){let d=await openDB();return new Promise((res,rej)=>{let t=d.transaction(KEY,'readwrite');t.objectStore(KEY).put({id:'default',...profile});t.oncomplete=res;t.onerror=()=>rej(t.error)})}
-async function addWater(n){let d=await openDB();let e={id:(crypto.randomUUID ? crypto.randomUUID() : Date.now()+'-'+Math.random().toString(16).slice(2)),amount:n,date:new Date().toISOString()};await new Promise((res,rej)=>{let t=d.transaction(ENTRY,'readwrite');t.objectStore(ENTRY).add(e);t.oncomplete=res;t.onerror=()=>rej(t.error)});entries.push(e);allEntries.push(e);render()}
+async function addWater(n){let d=await openDB();let e={id:(crypto.randomUUID ? crypto.randomUUID() : Date.now()+'-'+Math.random().toString(16).slice(2)),amount:n,date:new Date().toISOString()};await new Promise((res,rej)=>{let t=d.transaction(ENTRY,'readwrite');t.objectStore(ENTRY).add(e);t.oncomplete=res;t.onerror=()=>rej(t.error)});entries.push(e);allEntries.push(e);scheduleNextReminder();render()}
 function applyTheme(){let t=profile.theme==='system'?(matchMedia('(prefers-color-scheme:dark)').matches?'dark':'light'):profile.theme;document.documentElement.dataset.theme=t;document.querySelector('meta[name=theme-color]').content=t==='dark'?'#0E1418':'#F7FAFC'}
 
 function dateKey(date){return date.toISOString().slice(0,10)}
@@ -414,6 +414,77 @@ function renderGoalResult(value){
   };
 }
 
+function reminderState(){profile.reminders={...defaults.reminders,...(profile.reminders||{})};return profile.reminders}
+function minutesOfDay(value){const [h,m]=String(value||'00:00').split(':').map(Number);return h*60+(m||0)}
+function isInQuietHours(now=new Date()){
+  const r=reminderState(),cur=now.getHours()*60+now.getMinutes(),qs=minutesOfDay(r.quietStart),qe=minutesOfDay(r.quietEnd);
+  if(qs===qe) return false;
+  return qs<qe ? cur>=qs&&cur<qe : cur>=qs||cur<qe;
+}
+function todayWindow(){
+  const now=new Date(),[sh,sm]=String(profile.dayStart||'07:00').split(':').map(Number),[eh,em]=String(profile.dayEnd||'23:00').split(':').map(Number);
+  const start=new Date(now);start.setHours(sh,sm,0,0);
+  const end=new Date(now);end.setHours(eh,em,0,0);
+  if(end<=start) end.setDate(end.getDate()+1);
+  return {now,start,end};
+}
+function smartReminderPlan(){
+  const total=entries.reduce((s,e)=>s+e.amount,0),goal=Math.max(1,Number(profile.goal)||2000),remaining=Math.max(0,goal-total);
+  const {now,start,end}=todayWindow();
+  if(remaining<=0||now>=end) return null;
+  let activeNow=new Date(now);
+  if(activeNow<start) activeNow=new Date(start);
+  const remainingMinutes=Math.max(1,Math.round((end-activeNow)/60000));
+  const minInterval=60,maxInterval=180;
+  const desiredServings=Math.max(1,Math.ceil(remaining/250));
+  const interval=Math.max(minInterval,Math.min(maxInterval,Math.round(remainingMinutes/desiredServings)));
+  const servings=Math.max(1,Math.ceil(remaining/Math.max(150,Math.round(remaining/Math.max(1,Math.floor(remainingMinutes/interval)) /50)*50)));
+  const amount=Math.max(50,Math.round((remaining/servings)/50)*50);
+  const next=new Date(now.getTime()+interval*60000);
+  if(next>end) return {next:end,amount:remaining,interval};
+  return {next,amount:Math.min(amount,remaining),interval};
+}
+async function requestReminderPermission(){
+  if(!('Notification' in window)){alert('Уведомления недоступны в этом браузере.');return false;}
+  if(Notification.permission==='granted') return true;
+  if(Notification.permission==='denied'){alert('Уведомления для Aqua Cube запрещены в настройках iPhone.');return false;}
+  const result=await Notification.requestPermission();
+  if(result!=='granted') alert('Разрешение на уведомления не получено.');
+  return result==='granted';
+}
+async function showReminderNotification(amount){
+  const text=`Время сделать небольшой глоток. Ориентир: ${ml(amount)} мл.`;
+  try{
+    if('serviceWorker' in navigator){const reg=await navigator.serviceWorker.ready;if(reg.showNotification){await reg.showNotification('Aqua Cube',{body:text,icon:'./icon-192.png',tag:'aqua-cube-reminder',renotify:true});return;}}
+  }catch(e){}
+  if('Notification' in window && Notification.permission==='granted') new Notification('Aqua Cube',{body:text,icon:'./icon-192.png'});
+}
+function scheduleNextReminder(){
+  clearTimeout(reminderTimer);reminderTimer=null;
+  const r=reminderState();if(!r.enabled) return;
+  const plan=smartReminderPlan();if(!plan) return;
+  let delay=plan.next-Date.now();
+  if(delay<1000) delay=1000;
+  if(delay>2147480000) return;
+  reminderTimer=setTimeout(async()=>{
+    reminderTimer=null;
+    if(!reminderState().enabled) return;
+    if(!isInQuietHours()){
+      reminderLastAt=Date.now();
+      await showReminderNotification(plan.amount);
+    }
+    scheduleNextReminder();
+  },delay);
+}
+function refreshReminderTimer(){
+  if(reminderState().enabled) scheduleNextReminder();
+}
+window.addEventListener('pageshow',refreshReminderTimer);
+window.addEventListener('focus',refreshReminderTimer);
+document.addEventListener('visibilitychange',()=>{if(!document.hidden) refreshReminderTimer();});
+async function saveReminderSettings(){reminderState().enabled=$('#reminders-enabled')?.checked===true;reminderState().quietStart=$('#quiet-start')?.value||'22:30';reminderState().quietEnd=$('#quiet-end')?.value||'07:00';await saveProfile();if(reminderState().enabled) await requestReminderPermission();scheduleNextReminder();render();}
+function reminderCard(){const r=reminderState(),plan=smartReminderPlan();return `<div class="card reminder-card"><div class="section-title"><b>Умные напоминания</b><span>${r.enabled?'Включены':'Выключены'}</span></div><label class="switch-row"><span>Напоминать о воде</span><input id="reminders-enabled" type="checkbox" ${r.enabled?'checked':''}></label><div class="reminder-fields"><label>Тихие часы<input id="quiet-start" type="time" value="${r.quietStart}"></label><label>до<input id="quiet-end" type="time" value="${r.quietEnd}"></label></div><p class="reminder-status">${r.enabled&&plan?`Следующее напоминание рассчитано автоматически: ориентир ${ml(plan.amount)} мл.`:'Aqua Cube подберёт следующий приём по цели, выпитому объёму и времени дня.'}</p><button class="secondary full" id="save-reminders">Сохранить напоминания</button><small class="note">Уведомления работают без сервера: Aqua Cube планирует их локально. Пока приложение активно или iOS не остановил его работу, напоминание появится в заданное время. Если iOS полностью приостановит PWA, уведомление может задержаться или не сработать.</small></div>`}
+
 function render(){let total=entries.reduce((s,e)=>s+e.amount,0),pct=Math.round(total/Math.max(profile.goal,1)*100),p=Math.min(total/Math.max(profile.goal,1),1)*100,waterStartP=lastWaterP===null?p:lastWaterP,waterStartY=Math.round(610-(610-275)*waterStartP),waterEndY=Math.round(610-(610-275)*Math.min(p,1));lastWaterP=p;let date=new Intl.DateTimeFormat('ru-RU',{weekday:'long',day:'numeric',month:'long'}).format(new Date());let body='';
 if(tab==='today')body=`<section class="screen"><div class="top"><div><div class="eyebrow">AQUA CUBE</div><h1>Сегодня</h1><p class="date">${date}</p></div><button class="gear-button" id="settings" aria-label="Настройки" title="Настройки">${ICON.gear}</button></div><main class="today"><div class="cube-stage"><div class="cube" data-level="${Math.min(4,Math.round(p/25))}" aria-label="Уровень воды ${Math.round(p)} процентов"><img class="cube-level level-0" src="cube-level-0-final.png" alt="" aria-hidden="true"><img class="cube-level level-25" src="cube-level-25-final.png" alt="" aria-hidden="true"><img class="cube-level level-50" src="cube-level-50-final.png" alt="" aria-hidden="true"><img class="cube-level level-75" src="cube-level-75-final.png" alt="" aria-hidden="true"><img class="cube-level level-100" src="cube-level-100-final.png" alt="" aria-hidden="true"><div class="water-shimmer" aria-hidden="true"></div><div class="cube-glass" aria-hidden="true"></div><div class="cube-reflection" aria-hidden="true"></div></div></div><div class="summary"><strong>${ml(total)} мл</strong><span>из ${ml(profile.goal)} мл</span><small>${total<profile.goal?'Осталось '+ml(profile.goal-total)+' мл':'Цель достигнута'}</small></div><div class="add"><button class="primary" id="add">+ ${ml(profile.volume)} мл</button><button class="toggle" id="toggle">⌄</button><div class="menu hidden" id="menu">${presets.map(v=>`<button class="${v===profile.volume?'selected':''}" data-v="${v}">${v} мл</button>`).join('')}<button class="other" id="other">Другой объём</button></div></div><div class="timeline" style="--progress:${Math.min(p,100)}%"><div class="line"></div><div class="dot" aria-hidden="true"></div><div class="labels"><span>Сегодня</span><span>${pct}%</span></div></div></main><nav class="nav"><button class="active" data-tab="today"><span class="nav-icon">${ICON.today}</span><span>Сегодня</span></button><button data-tab="history"><span class="nav-icon">${ICON.history}</span><span>История</span></button><button data-tab="tools"><span class="nav-icon">${ICON.tools}</span><span>Инструменты</span></button></nav></section>`;
 else if(tab==='history')body=historyView();
@@ -422,7 +493,7 @@ toolView==='converter'?converterView():
 toolView==='distribution'?distributionView():
 toolView==='volumes'?volumesView():
 toolView==='knowledge'?knowledgeView():toolsView();
-else body=`<section class="screen secondary-screen"><button class="top-back" id="settings-back" aria-label="Назад" title="Назад">${ICON.back}</button><div class="secondary-header"><div class="eyebrow">AQUA CUBE</div></div><h1>Настройки</h1><div class="card settings"><label>Дневная цель<input id="goal" type="number" min="250" max="10000" step="50" value="${profile.goal}"></label><label>Объём по умолчанию<select id="volume">${presets.map(v=>`<option value="${v}" ${v===profile.volume?'selected':''}>${v} мл</option>`).join('')}</select></label><label>Режим<select id="theme"><option value="system" selected>Системный</option></select></label><button class="primary full" id="save">Сохранить</button></div><div class="card data-tools"><b>Данные</b><span>Safari и версия на экране «Домой» могут иметь отдельное локальное хранилище. Здесь можно безопасно перенести данные между ними.</span><div class="data-actions"><button class="secondary" id="exportData">Экспорт</button><button class="secondary" id="importData">Импорт</button><input id="importFile" type="file" accept="application/json,.json" hidden></div></div><div class="card"><b>Aqua Cube</b><span>Локальное приложение без аккаунта и Apple Health.</span></div></section>`;
+else body=`<section class="screen secondary-screen"><button class="top-back" id="settings-back" aria-label="Назад" title="Назад">${ICON.back}</button><div class="secondary-header"><div class="eyebrow">AQUA CUBE</div></div><h1>Настройки</h1><div class="card settings"><label>Дневная цель<input id="goal" type="number" min="250" max="10000" step="50" value="${profile.goal}"></label><label>Объём по умолчанию<select id="volume">${presets.map(v=>`<option value="${v}" ${v===profile.volume?'selected':''}>${v} мл</option>`).join('')}</select></label><label>Режим<select id="theme"><option value="system" selected>Системный</option></select></label><button class="primary full" id="save">Сохранить</button></div>${reminderCard()}<div class="card data-tools"><b>Данные</b><span>Safari и версия на экране «Домой» могут иметь отдельное локальное хранилище. Здесь можно безопасно перенести данные между ними.</span><div class="data-actions"><button class="secondary" id="exportData">Экспорт</button><button class="secondary" id="importData">Импорт</button><input id="importFile" type="file" accept="application/json,.json" hidden></div></div><div class="card"><b>Aqua Cube</b><span>Локальное приложение без аккаунта и Apple Health.</span></div></section>`;
 $('#app').innerHTML=body;bind()}
 async function exportData(){
   const payload={version:1,app:'Aqua Cube',exportedAt:new Date().toISOString(),profile,entries:allEntries};
@@ -471,7 +542,7 @@ $('#calculate-goal')?.addEventListener('click',()=>{
 });
 $('#tools-back')?.addEventListener('click',()=>{toolView=null;render()});
 $('#settings-back')?.addEventListener('click',()=>{tab='today';render()});
-$('#close-detail')?.addEventListener('click',()=>{selectedHistoryDate=null;render()});$('#settings')?.addEventListener('click',()=>{tab='settings';render()});$('#toggle')?.addEventListener('click',()=>$('#menu').classList.toggle('hidden'));document.querySelectorAll('[data-v]').forEach(b=>b.onclick=async()=>{profile.volume=+b.dataset.v;await saveProfile();render()});$('#add')?.addEventListener('click',()=>addWater(profile.volume));$('#other')?.addEventListener('click',async()=>{let v=Number(prompt('Введите объём в мл (1–5000):'));if(v>=1&&v<=5000){profile.volume=v;await saveProfile();render()}});$('#save')?.addEventListener('click',async()=>{profile.goal=Number($('#goal').value)||2000;profile.volume=Number($('#volume').value)||250;profile.theme='system';await saveProfile();applyTheme();tab='today';render()});$('#exportData')?.addEventListener('click',exportData);$('#importData')?.addEventListener('click',()=>$('#importFile').click());$('#importFile')?.addEventListener('change',e=>importData(e.target.files[0]))}
+$('#close-detail')?.addEventListener('click',()=>{selectedHistoryDate=null;render()});$('#settings')?.addEventListener('click',()=>{tab='settings';render()});$('#toggle')?.addEventListener('click',()=>$('#menu').classList.toggle('hidden'));document.querySelectorAll('[data-v]').forEach(b=>b.onclick=async()=>{profile.volume=+b.dataset.v;await saveProfile();render()});$('#add')?.addEventListener('click',()=>addWater(profile.volume));$('#other')?.addEventListener('click',async()=>{let v=Number(prompt('Введите объём в мл (1–5000):'));if(v>=1&&v<=5000){profile.volume=v;await saveProfile();render()}});$('#save-reminders')?.addEventListener('click',saveReminderSettings);$('#save')?.addEventListener('click',async()=>{profile.goal=Number($('#goal').value)||2000;profile.volume=Number($('#volume').value)||250;profile.theme='system';await saveProfile();applyTheme();scheduleNextReminder();tab='today';render()});$('#exportData')?.addEventListener('click',exportData);$('#importData')?.addEventListener('click',()=>$('#importFile').click());$('#importFile')?.addEventListener('change',e=>importData(e.target.files[0]))}
 async function boot(){
   try { await load(); }
   catch (error) {
@@ -482,6 +553,7 @@ async function boot(){
     applyTheme();
   }
   render();
+  scheduleNextReminder();
 }
 boot();
 // Aqua Cube v0.9.3 — update-safe PWA registration.
@@ -520,4 +592,8 @@ html,body{background:linear-gradient(180deg,#F4FBFF 0%,#D9F1FC 43%,#BFE7FA 100%)
 @media (prefers-color-scheme: dark){html,body{background:linear-gradient(180deg,#0E171D 0%,#102530 55%,#0E1418 100%) !important;}}
 .cube-stage::before,.cube-stage::after,.cube-reflection{display:none !important;}
 .cube-level{filter:none !important;}
+</style>
+
+<style id="v0155-reminders">
+.reminder-card{display:grid;gap:14px}.switch-row{display:flex!important;align-items:center;justify-content:space-between;color:var(--text)!important;font-size:16px!important}.switch-row input{width:52px!important;height:30px!important;margin:0;accent-color:#72C9F4}.reminder-fields{display:grid;grid-template-columns:1fr 1fr;gap:10px}.reminder-fields label{font-size:13px!important}.reminder-fields input{height:46px!important;text-align:center;padding:0!important}.reminder-status{margin:0;color:var(--secondary);font-size:13px;line-height:1.45}.reminder-card .note{margin:0;color:var(--secondary);font-size:11px;line-height:1.4}.reminder-card .full{height:46px}.theme-dark .reminder-card{background:rgba(255,255,255,.06)}
 </style>
