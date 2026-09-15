@@ -1,4 +1,4 @@
-const CACHE='aqua-cube-v0.14.7';
+const CACHE='aqua-cube-v0.15.0';
 const ASSETS=[
  './','./index.html','./manifest.webmanifest','./icon-192.png','./icon-512.png','./apple-touch-icon-v2.png',
  './cube-level-0-final.png','./cube-level-25-final.png','./cube-level-50-final.png','./cube-level-75-final.png','./cube-level-100-final.png'

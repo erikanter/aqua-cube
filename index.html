@@ -238,7 +238,7 @@ body{background:
 <body><div id="app"></div>
 <script>
 const DB='aqua-cube',KEY='profile',ENTRY='entries';
-const defaults={goal:2000,volume:250,theme:'system'};
+const defaults={goal:2000,volume:250,theme:'system',customVolumes:[150,250,350,500],dayStart:'07:00',dayEnd:'23:00',planStep:120};
 let profile={...defaults},entries=[],allEntries=[],tab='today',selectedHistoryDate=null,toolView=null,lastWaterP=null;
 const presets=[100,150,200,250,330,500];
 const $=s=>document.querySelector(s);
@@ -380,6 +380,16 @@ function goalCalculatorView(){
     </section>`;
 }
 
+
+function toolBackButton(){return `<button class="tool-back" id="tools-back">Назад к инструментам</button>`}
+function converterView(){return `<section class="screen tool-screen"><div class="eyebrow">AQUA CUBE</div><h1>Конвертер</h1><p class="tool-intro">Быстро переводи объём воды в удобные единицы.</p><div class="card form-card converter-card"><label>Количество<input id="conv-value" type="number" inputmode="decimal" min="0" step="0.1" value="500"></label><label>Из<select id="conv-from"><option value="ml">мл</option><option value="l">л</option><option value="oz">oz</option><option value="cup">стаканы</option></select></label><div class="conversion-result" id="conv-result"></div></div>${toolBackButton()}</section>`}
+function converterCalc(){const v=Number($('#conv-value')?.value)||0,from=$('#conv-from')?.value||'ml';const x={ml:v,l:v*1000,oz:v*29.5735295625,cup:v*250}[from];$('#conv-result').innerHTML=`<small>Эквивалент</small><strong>${ml(x)} мл</strong><span>${(x/1000).toFixed(2)} л · ${(x/29.5735295625).toFixed(1)} oz · ${(x/250).toFixed(1)} стакана</span>`}
+function distributionView(){return `<section class="screen tool-screen"><div class="eyebrow">AQUA CUBE</div><h1>Распределить воду</h1><p class="tool-intro">Составим спокойный план на день на основе твоей цели.</p><div class="card form-card"><label>Начало дня<input id="plan-start" type="time" value="${profile.dayStart||'07:00'}"></label><label>Конец дня<input id="plan-end" type="time" value="${profile.dayEnd||'23:00'}"></label><label>Шаг между приёмами<select id="plan-step"><option value="90">90 минут</option><option value="120" ${Number(profile.planStep||120)===120?'selected':''}>120 минут</option><option value="150" ${Number(profile.planStep||120)===150?'selected':''}>150 минут</option><option value="180" ${Number(profile.planStep||120)===180?'selected':''}>180 минут</option></select></label><button class="primary full" id="make-plan">Составить план</button></div><div id="plan-result"></div>${toolBackButton()}</section>`}
+async function makePlan(){const s=$('#plan-start').value,e=$('#plan-end').value,step=Number($('#plan-step').value);if(!s||!e){alert('Укажи начало и конец дня.');return}let [sh,sm]=s.split(':').map(Number),[eh,em]=e.split(':').map(Number),start=sh*60+sm,end=eh*60+em;if(end<=start)end+=1440;const times=[];for(let t=start;t<=end;t+=step)times.push(t);const count=Math.max(1,times.length),base=Math.round(profile.goal/count/50)*50,total=base*count,diff=profile.goal-total;const items=times.map((t,i)=>({time:`${String(Math.floor((t%1440)/60)).padStart(2,'0')}:${String(t%60).padStart(2,'0')}`,amount:base+(i===times.length-1?diff:0)}));profile.dayStart=s;profile.dayEnd=e;profile.planStep=step;await saveProfile();$('#plan-result').innerHTML=`<div class="card plan-card"><div class="section-title"><b>План на день</b><span>${ml(profile.goal)} мл</span></div>${items.map(x=>`<div class="plan-row"><span>${x.time}</span><strong>${ml(x.amount)} мл</strong></div>`).join('')}</div>`}
+function volumesView(){const vals=Array.isArray(profile.customVolumes)&&profile.customVolumes.length?profile.customVolumes:[150,250,350,500];return `<section class="screen tool-screen"><div class="eyebrow">AQUA CUBE</div><h1>Мои объёмы</h1><p class="tool-intro">Создай свои быстрые объёмы для добавления воды.</p><div class="card form-card"><label>Новый объём, мл<input id="new-volume" type="number" inputmode="numeric" min="1" max="5000" step="1" placeholder="Например, 450"></label><button class="primary full" id="add-volume">Добавить объём</button></div><div class="card volume-list">${vals.map(v=>`<div class="volume-row"><strong>${ml(v)} мл</strong><button class="secondary" data-remove-volume="${v}">Удалить</button></div>`).join('')}</div>${toolBackButton()}</section>`}
+async function addCustomVolume(){const v=Math.round(Number($('#new-volume').value));if(!v||v<1||v>5000){alert('Введите объём от 1 до 5000 мл.');return}profile.customVolumes=Array.isArray(profile.customVolumes)?profile.customVolumes:[];if(!profile.customVolumes.includes(v))profile.customVolumes.push(v);profile.customVolumes.sort((a,b)=>a-b);profile.volume=v;await saveProfile();render()}
+async function removeCustomVolume(v){profile.customVolumes=(Array.isArray(profile.customVolumes)?profile.customVolumes:[]).filter(x=>x!==v);await saveProfile();render()}
+function knowledgeView(){const cards=[['Сколько воды нужно?','Дневная потребность зависит от веса, активности, температуры и питания. Цель Aqua Cube — ориентир, который можно изменить вручную.'],['Пей регулярно','Равномерное распределение воды в течение дня обычно удобнее, чем попытка восполнить весь объём вечером.'],['Учитывай активность','Во время тренировок и при жаркой погоде потребность в жидкости может возрастать.'],['Слушай сигналы организма','Жажда — один из естественных сигналов потребности в жидкости.'],['Вода и питание','Часть жидкости поступает с едой и другими напитками. Aqua Cube учитывает объём воды, который ты добавляешь в приложение.']];return `<section class="screen tool-screen"><div class="eyebrow">AQUA CUBE</div><h1>Знания</h1><p class="tool-intro">Короткие материалы, которые помогают лучше понимать привычку пить воду.</p><div class="knowledge-list">${cards.map((c,i)=>`<article class="card knowledge-card"><span>0${i+1}</span><div><b>${c[0]}</b><p>${c[1]}</p></div></article>`).join('')}</div><p class="note">Материалы носят информационный характер и не заменяют индивидуальные медицинские рекомендации.</p>${toolBackButton()}</section>`}
 function renderGoalResult(value){
   const result=$('#goal-result');
   if(!result) return;
@@ -403,7 +413,11 @@ function renderGoalResult(value){
 function render(){let total=entries.reduce((s,e)=>s+e.amount,0),pct=Math.round(total/Math.max(profile.goal,1)*100),p=Math.min(total/Math.max(profile.goal,1),1)*100,waterStartP=lastWaterP===null?p:lastWaterP,waterStartY=Math.round(610-(610-275)*waterStartP),waterEndY=Math.round(610-(610-275)*Math.min(p,1));lastWaterP=p;let date=new Intl.DateTimeFormat('ru-RU',{weekday:'long',day:'numeric',month:'long'}).format(new Date());let body='';
 if(tab==='today')body=`<section class="screen"><div class="top"><div><div class="eyebrow">AQUA CUBE</div><h1>Сегодня</h1><p class="date">${date}</p></div><button class="gear-button" id="settings" aria-label="Настройки" title="Настройки">${ICON.gear}</button></div><main class="today"><div class="cube-stage"><div class="cube" data-level="${Math.min(4,Math.round(p/25))}" aria-label="Уровень воды ${Math.round(p)} процентов"><img class="cube-level level-0" src="cube-level-0-final.png" alt="" aria-hidden="true"><img class="cube-level level-25" src="cube-level-25-final.png" alt="" aria-hidden="true"><img class="cube-level level-50" src="cube-level-50-final.png" alt="" aria-hidden="true"><img class="cube-level level-75" src="cube-level-75-final.png" alt="" aria-hidden="true"><img class="cube-level level-100" src="cube-level-100-final.png" alt="" aria-hidden="true"><div class="water-shimmer" aria-hidden="true"></div><div class="cube-glass" aria-hidden="true"></div><div class="cube-reflection" aria-hidden="true"></div></div></div><div class="summary"><strong>${ml(total)} мл</strong><span>из ${ml(profile.goal)} мл</span><small>${total<profile.goal?'Осталось '+ml(profile.goal-total)+' мл':'Цель достигнута'}</small></div><div class="add"><button class="primary" id="add">+ ${ml(profile.volume)} мл</button><button class="toggle" id="toggle">⌄</button><div class="menu hidden" id="menu">${presets.map(v=>`<button class="${v===profile.volume?'selected':''}" data-v="${v}">${v} мл</button>`).join('')}<button class="other" id="other">Другой объём</button></div></div><div class="timeline" style="--progress:${Math.min(p,100)}%"><div class="line"></div><div class="dot" aria-hidden="true"></div><div class="labels"><span>Сегодня</span><span>${pct}%</span></div></div></main><nav class="nav"><button class="active" data-tab="today"><span class="nav-icon">${ICON.today}</span><span>Сегодня</span></button><button data-tab="history"><span class="nav-icon">${ICON.history}</span><span>История</span></button><button data-tab="tools"><span class="nav-icon">${ICON.tools}</span><span>Инструменты</span></button></nav></section>`;
 else if(tab==='history')body=historyView();
-else if(tab==='tools')body=toolView==='goal-calculator'?goalCalculatorView():toolsView();
+else if(tab==='tools')body=toolView==='goal-calculator'?goalCalculatorView():
+toolView==='converter'?converterView():
+toolView==='distribution'?distributionView():
+toolView==='volumes'?volumesView():
+toolView==='knowledge'?knowledgeView():toolsView();
 else body=`<section class="screen"><div class="eyebrow">AQUA CUBE</div><h1>Настройки</h1><div class="card settings"><label>Дневная цель<input id="goal" type="number" min="250" max="10000" step="50" value="${profile.goal}"></label><label>Объём по умолчанию<select id="volume">${presets.map(v=>`<option value="${v}" ${v===profile.volume?'selected':''}>${v} мл</option>`).join('')}</select></label><label>Тема<select id="theme"><option value="system" ${profile.theme==='system'?'selected':''}>Системная</option><option value="light" ${profile.theme==='light'?'selected':''}>Светлая</option><option value="dark" ${profile.theme==='dark'?'selected':''}>Тёмная</option></select></label><button class="primary full" id="save">Сохранить</button></div><div class="card data-tools"><b>Данные</b><span>Safari и версия на экране «Домой» могут иметь отдельное локальное хранилище. Здесь можно безопасно перенести данные между ними.</span><div class="data-actions"><button class="secondary" id="exportData">Экспорт</button><button class="secondary" id="importData">Импорт</button><input id="importFile" type="file" accept="application/json,.json" hidden></div></div><div class="card"><b>Aqua Cube</b><span>Локальное приложение без аккаунта и Apple Health.</span></div><button class="back" id="back">Назад</button></section>`;
 $('#app').innerHTML=body;bind()}
 async function exportData(){
@@ -433,10 +447,13 @@ async function importData(file){
   }catch(e){alert('Не удалось импортировать файл Aqua Cube.');}
 }
 function bind(){document.querySelectorAll('[data-tab]').forEach(b=>b.onclick=()=>{tab=b.dataset.tab;selectedHistoryDate=null;toolView=null;render()});document.querySelectorAll('[data-history-date]').forEach(b=>b.onclick=()=>{selectedHistoryDate=b.dataset.historyDate;render()});
-document.querySelectorAll('[data-tool]').forEach(b=>b.onclick=()=>{
-  if(b.dataset.tool==='goal-calculator'){toolView='goal-calculator';render();}
-  else { alert('Этот инструмент добавим на следующем этапе.'); }
-});
+document.querySelectorAll('[data-tool]').forEach(b=>b.onclick=()=>{toolView=b.dataset.tool;render()});
+$('#conv-value')?.addEventListener('input',converterCalc);
+$('#conv-from')?.addEventListener('change',converterCalc);
+$('#make-plan')?.addEventListener('click',makePlan);
+$('#add-volume')?.addEventListener('click',addCustomVolume);
+document.querySelectorAll('[data-remove-volume]').forEach(b=>b.onclick=()=>removeCustomVolume(Number(b.dataset.removeVolume)));
+setTimeout(()=>{if(toolView==='converter')converterCalc()},0);
 $('#calculate-goal')?.addEventListener('click',()=>{
   const weight=Number($('#weight').value);
   if(!weight || weight<1 || weight>300){ alert('Введите вес от 1 до 300 кг.'); return; }
@@ -470,6 +487,9 @@ boot();
 
 
 
+<style id="aqua-tools-functional">
+.converter-card .conversion-result{margin-top:8px;padding:18px;border-radius:20px;background:rgba(255,255,255,.58);display:flex;flex-direction:column;gap:5px}.conversion-result strong{font-size:30px;letter-spacing:-.5px}.conversion-result span{font-size:13px;opacity:.62}.plan-card{margin-top:14px}.plan-row,.volume-row{display:flex;align-items:center;justify-content:space-between;padding:13px 2px;border-bottom:1px solid rgba(80,120,150,.12)}.plan-row:last-child,.volume-row:last-child{border-bottom:0}.volume-list{margin-top:14px}.knowledge-list{display:flex;flex-direction:column;gap:12px;margin-top:18px}.knowledge-card{display:flex;gap:14px;align-items:flex-start}.knowledge-card>span{font-size:12px;opacity:.45;padding-top:2px}.knowledge-card b{display:block;font-size:16px}.knowledge-card p{margin:6px 0 0;font-size:14px;line-height:1.45;opacity:.7}
+</style>
 </body></html>
 
 <style id="blue-bg-final">
