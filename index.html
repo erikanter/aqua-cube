@@ -10,7 +10,7 @@
 <meta name="apple-mobile-web-app-title" content="Aqua Cube">
 <link rel="manifest" href="./manifest.webmanifest">
 <title>Aqua Cube</title>
-<!-- Aqua Cube build 0.15.2: blue icy background, approved cube, no external shadow -->
+<!-- Aqua Cube build 0.15.3: blue icy background, approved cube, no external shadow -->
 <style>
 :root{--bg:#D9F1FC;--surface:rgba(255,255,255,.76);--text:#172027;--secondary:#73808A;--divider:#DDE5EA;--primary:#72C9F4;--primaryDark:#123044;--shadow:0 18px 40px rgba(18,48,68,.09)}
 :root[data-theme=dark]{--bg:#0E1418;--surface:rgba(25,34,40,.82);--text:#F3F8FA;--secondary:#9BAAB3;--divider:#2B3941;--primaryDark:#EAF8FF;--shadow:0 18px 40px rgba(0,0,0,.3)}
@@ -506,12 +506,12 @@ boot();
 
 <style id="v0151-navigation-persistence-fix">
 .secondary-screen{position:relative;padding-top:18px;}
-.top-back{position:absolute;top:18px;left:0;width:44px;height:44px;border-radius:50%;display:grid;place-items:center;background:var(--surface);color:var(--text);border:1px solid var(--divider);box-shadow:var(--shadow);padding:0;z-index:5;}
+.top-back{position:absolute;top:18px;left:18px;width:44px;height:44px;border-radius:50%;display:grid;place-items:center;background:var(--surface);color:var(--text);border:1px solid var(--divider);box-shadow:var(--shadow);padding:0;z-index:5;}
 .top-back .icon-img{width:22px;height:22px;object-fit:contain;}
 .secondary-header{min-height:44px;display:flex;align-items:center;padding-left:56px;}
 .secondary-screen .tool-intro{margin-bottom:18px;}
 .form-card input[type="time"],.form-card input[type="number"]{display:block;box-sizing:border-box;width:100%;min-width:0;max-width:100%;-webkit-appearance:none;appearance:none;}
-.form-card input[type="time"]{height:54px;text-align:center;padding:0 14px;font-variant-numeric:tabular-nums;}
+.form-card input[type="time"]{height:54px;line-height:54px;text-align:center;padding:0;font-size:24px;font-variant-numeric:tabular-nums;vertical-align:middle;}
 .form-card select{box-sizing:border-box;width:100%;min-width:0;max-width:100%;height:48px;border:1px solid var(--divider);border-radius:16px;padding:0 14px;color:var(--text);background:var(--bg);font-size:17px;-webkit-appearance:none;appearance:none;}
 .form-card label{min-width:0;}
 .plan-card{margin-top:14px;}
