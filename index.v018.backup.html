@@ -10,7 +10,7 @@
 <meta name="apple-mobile-web-app-title" content="Aqua Cube">
 <link rel="manifest" href="./manifest.webmanifest">
 <title>Aqua Cube</title>
-<!-- Aqua Cube build 0.19.0: final polish, local-date history, data safety -->
+<!-- Aqua Cube build 0.15.8: grouped settings, approved cube, local reminders -->
 <style>
 :root{--bg:#D9F1FC;--surface:rgba(255,255,255,.76);--text:#172027;--secondary:#73808A;--divider:#DDE5EA;--primary:#72C9F4;--primaryDark:#123044;--shadow:0 18px 40px rgba(18,48,68,.09)}
 :root[data-theme=dark]{--bg:#0E1418;--surface:rgba(25,34,40,.82);--text:#F3F8FA;--secondary:#9BAAB3;--divider:#2B3941;--primaryDark:#EAF8FF;--shadow:0 18px 40px rgba(0,0,0,.3)}
@@ -243,13 +243,13 @@ const defaults={goal:2000,volume:250,theme:'system',customVolumes:[150,250,350,5
 function toolState(){profile.tools={...defaults.tools,...(profile.tools||{})};profile.tools.dailyPlans={...(defaults.tools.dailyPlans||{}),...(profile.tools.dailyPlans||{})};return profile.tools}
 function toolBackHeader(){return `<button class="top-back" id="tools-back" aria-label="Назад" title="Назад">${ICON.back}</button>`}
 function settingsBackHeader(){return `<button class="top-back" id="settings-back" aria-label="Назад" title="Назад">${ICON.back}</button>`}
-let profile={...defaults},entries=[],allEntries=[],tab='today',historyRange=7,selectedHistoryDate=null,toolView=null,lastWaterP=null,reminderTimer=null,reminderLastAt=0;
+let profile={...defaults},entries=[],allEntries=[],tab='today',selectedHistoryDate=null,toolView=null,lastWaterP=null,reminderTimer=null,reminderLastAt=0;
 const presets=[100,150,200,250,330,500];
 const $=s=>document.querySelector(s);
 const ml=n=>new Intl.NumberFormat('ru-RU').format(n);
 function todayKey(){const d=new Date();return dateKey(d)}
 function openDB(){return new Promise((res,rej)=>{let r=indexedDB.open(DB,1);r.onupgradeneeded=()=>{let d=r.result;if(!d.objectStoreNames.contains(KEY))d.createObjectStore(KEY,{keyPath:'id'});if(!d.objectStoreNames.contains(ENTRY))d.createObjectStore(ENTRY,{keyPath:'id'})};r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error)})}
-async function load(){let d=await openDB();let p=await new Promise((res,rej)=>{let r=d.transaction(KEY).objectStore(KEY).get('default');r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error)});profile=p?{...defaults,...p}:profile;profile.theme='system';toolState();allEntries=await new Promise((res,rej)=>{let r=d.transaction(ENTRY).objectStore(ENTRY).getAll();r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error)});entries=allEntries.filter(x=>x&&x.date&&dateKey(x.date)===todayKey());applyTheme()}
+async function load(){let d=await openDB();let p=await new Promise((res,rej)=>{let r=d.transaction(KEY).objectStore(KEY).get('default');r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error)});profile=p?{...defaults,...p}:profile;profile.theme='system';toolState();allEntries=await new Promise((res,rej)=>{let r=d.transaction(ENTRY).objectStore(ENTRY).getAll();r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error)});entries=allEntries.filter(x=>x.date.slice(0,10)===todayKey());applyTheme()}
 async function saveProfile(){let d=await openDB();return new Promise((res,rej)=>{let t=d.transaction(KEY,'readwrite');t.objectStore(KEY).put({id:'default',...profile});t.oncomplete=res;t.onerror=()=>rej(t.error)})}
 async function addWater(n){let d=await openDB();let e={id:(crypto.randomUUID ? crypto.randomUUID() : Date.now()+'-'+Math.random().toString(16).slice(2)),amount:n,date:new Date().toISOString()};await new Promise((res,rej)=>{let t=d.transaction(ENTRY,'readwrite');t.objectStore(ENTRY).add(e);t.oncomplete=res;t.onerror=()=>rej(t.error)});entries.push(e);allEntries.push(e);scheduleNextReminder();render()}
 function applyTheme(){let t=profile.theme==='system'?(matchMedia('(prefers-color-scheme:dark)').matches?'dark':'light'):profile.theme;document.documentElement.dataset.theme=t;document.querySelector('meta[name=theme-color]').content=t==='dark'?'#0E1418':'#F7FAFC'}
@@ -267,12 +267,11 @@ function historyDays(count){
 function lastSevenDays(){return historyDays(7)}
 
 function dayEntries(key){
-  return allEntries.filter(e=>e&&e.date&&dateKey(e.date)===key).sort((a,b)=>new Date(a.date)-new Date(b.date));
+  return allEntries.filter(e=>e.date.slice(0,10)===key).sort((a,b)=>a.date.localeCompare(b.date));
 }
 function dayTotal(key){return dayEntries(key).reduce((s,e)=>s+e.amount,0)}
 function shortDay(d){return new Intl.DateTimeFormat('ru-RU',{weekday:'short'}).format(d).replace('.','')}
 function fullDay(d){return new Intl.DateTimeFormat('ru-RU',{day:'numeric',month:'long'}).format(d)}
-function fullDayWithWeekday(d){return new Intl.DateTimeFormat('ru-RU',{weekday:'long',day:'numeric',month:'long'}).format(d).replace(/^./,c=>c.toUpperCase())}
 function timeOf(iso){return new Intl.DateTimeFormat('ru-RU',{hour:'2-digit',minute:'2-digit'}).format(new Date(iso))}
 function planCompletedForDay(key){
   const plan=toolState().dailyPlans[key]||[];
@@ -282,11 +281,9 @@ function planCompletedForDay(key){
   return true;
 }
 function streakCount(){
-  const goal=Math.max(1,Number(profile.goal)||2000);
-  let d=new Date(); d.setHours(12,0,0,0);
-  if(dayTotal(dateKey(d))<goal) d.setDate(d.getDate()-1);
-  let streak=0;
-  while(dayTotal(dateKey(d))>=goal){
+  let streak=0, d=new Date();
+  d.setHours(12,0,0,0);
+  while(dayTotal(dateKey(d))>=Math.max(1,Number(profile.goal)||2000)){
     streak++; d.setDate(d.getDate()-1);
   }
   return streak;
@@ -305,7 +302,7 @@ function historyView(){
   const detail=selected ? `
     <div class="detail card">
       <div class="detail-head">
-        <div><b>${fullDayWithWeekday(selected.date)}</b><span>${ml(selected.total)} мл из ${ml(profile.goal)} мл · ${Math.round(selected.total/Math.max(profile.goal,1)*100)}%</span></div>
+        <div><b>${fullDay(selected.date)}</b><span>${ml(selected.total)} мл из ${ml(profile.goal)} мл · ${Math.round(selected.total/Math.max(profile.goal,1)*100)}%</span></div>
         <button class="close-detail" id="close-detail" aria-label="Закрыть">×</button>
       </div>
       <div class="detail-progress"><div style="width:${Math.min(selected.total/Math.max(profile.goal,1),1)*100}%"></div></div>
@@ -555,7 +552,7 @@ toolView==='knowledge'?knowledgeView():toolsView();
 else body=`<section class="screen secondary-screen"><button class="top-back" id="settings-back" aria-label="Назад" title="Назад">${ICON.back}</button><div class="secondary-header"><div class="eyebrow">AQUA CUBE</div></div><h1>Настройки</h1><div class="settings-groups"><details class="settings-group" open><summary><span class="settings-group-title"><b>Основные</b><span class="settings-summary">Цель · ${ml(profile.goal)} мл</span></span><span class="settings-chevron">›</span></summary><div class="settings-group-body settings"><label>Дневная цель<input id="goal" type="number" min="250" max="10000" step="50" value="${profile.goal}"></label><label>Объём по умолчанию<select id="volume">${presets.map(v=>`<option value="${v}" ${v===profile.volume?'selected':''}>${v} мл</option>`).join('')}</select></label><label>Режим<select id="theme"><option value="system" selected>Системный</option></select></label><button class="primary full" id="save">Сохранить</button></div></details>${reminderCard()}<details class="settings-group"><summary><span class="settings-group-title"><b>Данные</b><span class="settings-summary">Резервная копия</span></span><span class="settings-chevron">›</span></summary><div class="settings-group-body data-tools"><span>Safari и версия на экране «Домой» могут иметь отдельное локальное хранилище. Здесь можно безопасно перенести данные между ними.</span><div class="data-actions"><button class="secondary" id="exportData">Экспорт</button><button class="secondary" id="importData">Импорт</button><input id="importFile" type="file" accept="application/json,.json" hidden></div></div></details><details class="settings-group"><summary><span class="settings-group-title"><b>Aqua Cube</b><span class="settings-summary">О приложении</span></span><span class="settings-chevron">›</span></summary><div class="settings-group-body about-settings"><span>Локальное приложение без аккаунта и Apple Health.</span></div></details></div></section>`;
 $('#app').innerHTML=body;bind()}
 async function exportData(){
-  const payload={version:3,app:'Aqua Cube',exportedAt:new Date().toISOString(),profile:JSON.parse(JSON.stringify(profile)),entries:allEntries.map(e=>({...e})),history:{days:[...new Set(allEntries.map(e=>e&&e.date?dateKey(e.date):null).filter(Boolean))]}};
+  const payload={version:2,app:'Aqua Cube',exportedAt:new Date().toISOString(),profile,entries:allEntries,history:{days:[...new Set(allEntries.map(e=>e.date?e.date.slice(0,10):null).filter(Boolean))]}};
   const blob=new Blob([JSON.stringify(payload,null,2)],{type:'application/json'});
   const file=new File([blob],`aqua-cube-backup-${new Date().toISOString().slice(0,10)}.json`,{type:'application/json'});
   try{
@@ -578,7 +575,7 @@ async function importData(file){
     if(!Number.isFinite(cleanProfile.volume)||cleanProfile.volume<1||cleanProfile.volume>5000) cleanProfile.volume=250;
     const d=await openDB();
     await new Promise((res,rej)=>{const t=d.transaction([KEY,ENTRY],'readwrite');const ps=t.objectStore(KEY),es=t.objectStore(ENTRY);ps.put({id:'default',...cleanProfile});es.clear();for(const e of cleanEntries)es.put(e);t.oncomplete=res;t.onerror=()=>rej(t.error)});
-    profile=cleanProfile;toolState();allEntries=cleanEntries;entries=allEntries.filter(x=>x&&x.date&&dateKey(x.date)===todayKey());lastWaterP=null;applyTheme();render();alert('Данные Aqua Cube импортированы.');
+    profile=cleanProfile;toolState();allEntries=cleanEntries;entries=allEntries.filter(x=>x.date.slice(0,10)===todayKey());lastWaterP=null;applyTheme();render();alert('Данные Aqua Cube импортированы.');
   }catch(e){alert('Не удалось импортировать файл Aqua Cube.');}
 }
 function bind(){document.querySelectorAll('[data-tab]').forEach(b=>b.onclick=()=>{tab=b.dataset.tab;selectedHistoryDate=null;toolView=null;render()});document.querySelectorAll('[data-history-date]').forEach(b=>b.onclick=()=>{selectedHistoryDate=b.dataset.historyDate;render()});document.querySelectorAll('[data-history-range]').forEach(b=>b.onclick=()=>{historyRange=Number(b.dataset.historyRange);selectedHistoryDate=null;render()});$('#history-date')?.addEventListener('change',()=>{selectedHistoryDate=$('#history-date').value||todayKey();render()});
@@ -616,12 +613,12 @@ async function boot(){
   scheduleNextReminder();
 }
 boot();
-// Aqua Cube v1.0.0 — update-safe PWA registration.
+// Aqua Cube v0.9.3 — update-safe PWA registration.
 // The Service Worker uses network-first navigation and versioned cache cleanup.
 (async()=>{
   try{
     if(!('serviceWorker' in navigator)) return;
-    const reg=await navigator.serviceWorker.register('./service-worker.js?v=20',{updateViaCache:'none'});
+    const reg=await navigator.serviceWorker.register('./service-worker.js?v=18',{updateViaCache:'none'});
     await reg.update();
   }catch(e){console.warn('Aqua Cube PWA update:',e)}
 })();
